@@ -6,7 +6,7 @@ final class Test extends PackageProtected {
 
 package another {
   object Main {
-    def bug(t: Test): Unit = {
+    def bug(t: Test) {
       // Can always be replicated.
       println(t.foo)
     }

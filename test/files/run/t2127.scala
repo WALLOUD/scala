@@ -9,7 +9,7 @@
     abstract class Bar(val ctor : (Int) => Test)
 
     object Test extends Bar(new Test(_)) { //<--- ILLEGAL ACCESS
-      def main(args: Array[String]): Unit ={}
+      def main(args: Array[String]){}
     }
 
 //however the following is legal:

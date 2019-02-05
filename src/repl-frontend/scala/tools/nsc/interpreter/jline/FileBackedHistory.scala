@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2015 LAMP/EPFL
+ * @author Paul Phillips
  */
 
 package scala.tools.nsc.interpreter.jline
@@ -87,7 +80,7 @@ trait FileBackedHistory extends JLineHistory with PersistentHistory {
 
   def addLineToFile(item: CharSequence): Unit = {
     if (isPersistent)
-      append(s"$item\n")
+      append(item + "\n")
   }
 
   /** Overwrites the history file with the current memory. */

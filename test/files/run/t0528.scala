@@ -1,6 +1,5 @@
-import scala.tools.partest.Util.ArrayDeep
-import scala.language.{ existentials }
 
+import scala.language.{ existentials }
 trait Sequ[A] {
   def toArray: Array[T forSome {type T <: A}]
 }

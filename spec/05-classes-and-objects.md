@@ -63,15 +63,14 @@ The _least proper supertype_ of a template is the class type or
 class types.
 
 The statement sequence $\mathit{stats}$ contains member definitions that
-define new members or override members in the parent classes.  If the
-template forms part of an abstract class or trait definition, then
-$\mathit{stats}$ may also contain declarations of abstract members.
-If the template forms part of a concrete class definition,
+define new members or overwrite members in the parent classes.  If the
+template forms part of an abstract class or trait definition, the
+statement part $\mathit{stats}$ may also contain declarations of abstract
+members. If the template forms part of a concrete class definition,
 $\mathit{stats}$ may still contain declarations of abstract type members, but
 not of abstract term members.  Furthermore, $\mathit{stats}$ may in any case
-also contain strictly evaluated expressions: these are executed in the order they are
-given as part of the initialization of a template, even if they appear in
-the definition of overridden members.
+also contain expressions; these are executed in the order they are
+given as part of the initialization of a template.
 
 The sequence of template statements may be prefixed with a formal
 parameter definition and an arrow, e.g. `$x$ =>`, or
@@ -824,10 +823,11 @@ Consider the class definition
 
 ```scala
 class LinkedList[A]() {
-  var head: A = _
-  var tail: LinkedList[A] = null
+  var head = _
+  var tail = null
+  def isEmpty = tail != null
   def this(head: A) = { this(); this.head = head }
-  def this(head: A, tail: LinkedList[A]) = { this(head); this.tail = tail }
+  def this(head: A, tail: List[A]) = { this(head); this.tail = tail }
 }
 ```
 

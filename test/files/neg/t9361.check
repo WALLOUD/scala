@@ -3,4 +3,9 @@ t9361.scala:4: error: type mismatch;
  required: Nothing[]
     new Foo { def tc = null.asInstanceOf[Tc[_]] }
                                         ^
-one error found
+t9361.scala:4: error: type mismatch;
+ found   : Foo[Nothing]
+ required: Foo[Tc]{type T = Nothing}
+    new Foo { def tc = null.asInstanceOf[Tc[_]] }
+    ^
+two errors found

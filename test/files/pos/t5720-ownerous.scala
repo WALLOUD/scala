@@ -40,7 +40,7 @@ class C {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val c = new C
     println(c.model.currentUser)
     println(c.model.message)

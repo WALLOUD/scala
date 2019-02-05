@@ -44,7 +44,7 @@ class E() extends D() {
 object Test {
   def p(msg: String) = println("\n\n// " + msg)
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     p("new C { }")
     new C { }
     p("new C { 5 }")

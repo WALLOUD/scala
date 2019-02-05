@@ -7,6 +7,7 @@ package scala.man1
 
 /**
  *  @author Stephane Micheloud
+ *  @version 1.0
  */
 trait Command {
   import _root_.scala.tools.docutil.ManPage._
@@ -45,7 +46,7 @@ trait Command {
 
   def copyright = Section("COPYRIGHT",
 
-    "This is open-source software, available to you under the Apache License 2.0. " &
+    "This is open-source software, available to you under a BSD-like license. " &
     "See accompanying \"copyright\" or \"LICENSE\" file for copying conditions. " &
     "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A " &
     "PARTICULAR PURPOSE.")

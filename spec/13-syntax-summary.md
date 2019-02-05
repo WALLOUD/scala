@@ -11,8 +11,8 @@ The following descriptions of Scala tokens uses literal characters `‘c’` whe
 _Unicode escapes_ are used to represent the Unicode character with the given hexadecimal code:
 
 ```ebnf
-UnicodeEscape ::=  ‘\’ ‘u’ {‘u’} hexDigit hexDigit hexDigit hexDigit
-hexDigit      ::=  ‘0’ | … | ‘9’ | ‘A’ | … | ‘F’ | ‘a’ | … | ‘f’
+UnicodeEscape ::= ‘\’ ‘u’ {‘u’} hexDigit hexDigit hexDigit hexDigit
+hexDigit      ::= ‘0’ | … | ‘9’ | ‘A’ | … | ‘F’ | ‘a’ | … | ‘f’
 ```
 
 ## Lexical Syntax
@@ -27,20 +27,18 @@ letter           ::=  upper | lower // and Unicode categories Lo, Lt, Nl
 digit            ::=  ‘0’ | … | ‘9’
 paren            ::=  ‘(’ | ‘)’ | ‘[’ | ‘]’ | ‘{’ | ‘}’
 delim            ::=  ‘`’ | ‘'’ | ‘"’ | ‘.’ | ‘;’ | ‘,’
-opchar           ::=  // printableChar not matched by (whiteSpace | upper | lower |
-                      // letter | digit | paren | delim | opchar | Unicode_Sm | Unicode_So)
-printableChar    ::=  // all characters in [\u0020, \u007F] inclusive
-charEscapeSeq    ::=  ‘\’ (‘b’ | ‘t’ | ‘n’ | ‘f’ | ‘r’ | ‘"’ | ‘'’ | ‘\’)
+opchar           ::= // printableChar not matched by (whiteSpace | upper | lower |
+                     // letter | digit | paren | delim | opchar | Unicode_Sm | Unicode_So)
+printableChar    ::= // all characters in [\u0020, \u007F] inclusive
+charEscapeSeq    ::= ‘\’ (‘b’ | ‘t’ | ‘n’ | ‘f’ | ‘r’ | ‘"’ | ‘'’ | ‘\’)
 
 op               ::=  opchar {opchar}
 varid            ::=  lower idrest
-boundvarid       ::=  varid
-                   |  ‘`’ varid ‘`’
 plainid          ::=  upper idrest
-                   |  varid
-                   |  op
+                 |  varid
+                 |  op
 id               ::=  plainid
-                   |  ‘`’ { charNoBackQuoteOrNewline | UnicodeEscape | charEscapeSeq } ‘`’
+                 |  ‘`’ { charNoBackQuoteOrNewline | UnicodeEscape | charEscapeSeq } ‘`’
 idrest           ::=  {letter | digit} [‘_’ op]
 
 integerLiteral   ::=  (decimalNumeral | hexNumeral) [‘L’ | ‘l’]
@@ -51,9 +49,9 @@ nonZeroDigit     ::=  ‘1’ | … | ‘9’
 
 floatingPointLiteral
                  ::=  digit {digit} ‘.’ digit {digit} [exponentPart] [floatType]
-                   |  ‘.’ digit {digit} [exponentPart] [floatType]
-                   |  digit {digit} exponentPart [floatType]
-                   |  digit {digit} [exponentPart] floatType
+                 |  ‘.’ digit {digit} [exponentPart] [floatType]
+                 |  digit {digit} exponentPart [floatType]
+                 |  digit {digit} [exponentPart] floatType
 exponentPart     ::=  (‘E’ | ‘e’) [‘+’ | ‘-’] digit {digit}
 floatType        ::=  ‘F’ | ‘f’ | ‘D’ | ‘d’
 
@@ -62,25 +60,16 @@ booleanLiteral   ::=  ‘true’ | ‘false’
 characterLiteral ::=  ‘'’ (charNoQuoteOrNewline | UnicodeEscape | charEscapeSeq) ‘'’
 
 stringLiteral    ::=  ‘"’ {stringElement} ‘"’
-                   |  ‘"""’ multiLineChars ‘"""’
+                 |  ‘"""’ multiLineChars ‘"""’
 stringElement    ::=  charNoDoubleQuoteOrNewline
-                   |  UnicodeEscape
-                   |  charEscapeSeq
+                 |  UnicodeEscape
+                 |  charEscapeSeq
 multiLineChars   ::=  {[‘"’] [‘"’] charNoDoubleQuote} {‘"’}
-
-interpolatedString 
-                 ::=  alphaid ‘"’ {printableChar \ (‘"’ | ‘\$’) | escape} ‘"’ 
-                   |  alphaid ‘"""’ {[‘"’] [‘"’] char \ (‘"’ | ‘\$’) | escape} {‘"’} ‘"""’
-escape           ::=  ‘\$\$’ 
-                   |  ‘\$’ id 
-                   |  ‘\$’ BlockExpr
-alphaid          ::=  upper idrest
-                   |  varid
 
 symbolLiteral    ::=  ‘'’ plainid
 
 comment          ::=  ‘/*’ “any sequence of characters; nested comments are allowed” ‘*/’
-                   |  ‘//’ “any sequence of characters up to end of line”
+                 |  ‘//’ “any sequence of characters up to end of line”
 
 nl               ::=  $\mathit{“new line character”}$
 semi             ::=  ‘;’ |  nl {nl}
@@ -97,7 +86,6 @@ grammar:
                       |  booleanLiteral
                       |  characterLiteral
                       |  stringLiteral
-                      |  interpolatedString
                       |  symbolLiteral
                       |  ‘null’
 
@@ -176,7 +164,7 @@ grammar:
                       |  ‘{’ Block ‘}’
   Block             ::=  BlockStat {semi BlockStat} [ResultExpr]
   BlockStat         ::=  Import
-                      |  {Annotation} [‘implicit’] [‘lazy’] Def
+                      |  {Annotation} [‘implicit’ | ‘lazy’] Def
                       |  {Annotation} {LocalModifier} TmplDef
                       |  Expr1
                       |
@@ -191,10 +179,10 @@ grammar:
   Guard             ::=  ‘if’ PostfixExpr
 
   Pattern           ::=  Pattern1 { ‘|’ Pattern1 }
-  Pattern1          ::=  boundvarid ‘:’ TypePat
+  Pattern1          ::=  varid ‘:’ TypePat
                       |  ‘_’ ‘:’ TypePat
                       |  Pattern2
-  Pattern2          ::=  id [‘@’ Pattern3]
+  Pattern2          ::=  varid [‘@’ Pattern3]
                       |  Pattern3
   Pattern3          ::=  SimplePattern
                       |  SimplePattern { id [nl] SimplePattern }
@@ -203,7 +191,7 @@ grammar:
                       |  Literal
                       |  StableId
                       |  StableId ‘(’ [Patterns] ‘)’
-                      |  StableId ‘(’ [Patterns ‘,’] [id ‘@’] ‘_’ ‘*’ ‘)’
+                      |  StableId ‘(’ [Patterns ‘,’] [varid ‘@’] ‘_’ ‘*’ ‘)’
                       |  ‘(’ [Patterns] ‘)’
                       |  XmlPattern
   Patterns          ::=  Pattern [‘,’ Patterns]
@@ -298,7 +286,7 @@ grammar:
   ClassParents      ::=  Constr {‘with’ AnnotType}
   TraitParents      ::=  AnnotType {‘with’ AnnotType}
   Constr            ::=  AnnotType {ArgumentExprs}
-  EarlyDefs         ::=  ‘{’ [EarlyDef {semi EarlyDef}] ‘}’ ‘with’
+  EarlyDefs         ::= ‘{’ [EarlyDef {semi EarlyDef}] ‘}’ ‘with’
   EarlyDef          ::=  {Annotation [nl]} {Modifier} PatVarDef
 
   ConstrExpr        ::=  SelfInvocation

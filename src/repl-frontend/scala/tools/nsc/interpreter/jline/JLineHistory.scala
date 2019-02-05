@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Paul Phillips
  */
 
 package scala.tools.nsc.interpreter.jline
@@ -46,7 +39,7 @@ trait JLineHistory extends JHistory with History {
   def moveToEnd(): Unit
 
   override def historicize(text: String): Boolean = {
-    text.linesIterator foreach add
+    text.lines foreach add
     moveToEnd()
     true
   }
@@ -71,7 +64,7 @@ object JLineHistory {
       override def toString = value.toString
     }
 
-    private def toEntries(): scala.collection.Seq[JEntry] = buf.zipWithIndex map { case (x, i) => Entry(i, x)}
+    private def toEntries(): Seq[JEntry] = buf.zipWithIndex map { case (x, i) => Entry(i, x)}
     def entries(idx: Int): JListIterator[JEntry] = toEntries().asJava.listIterator(idx)
     def entries(): JListIterator[JEntry] = toEntries().asJava.listIterator()
     def iterator: JIterator[JEntry] = toEntries().iterator.asJava

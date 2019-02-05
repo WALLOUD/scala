@@ -72,7 +72,7 @@ class DefaultPromiseTest {
     case object IllegalThrown extends Effect
 
     /** Runs an operation while verifying that the operation has the expected effect */
-    private def checkEffect(expected: Effect)(f: => Any): Unit = {
+    private def checkEffect(expected: Effect)(f: => Any) {
       assert(handlerQueue.isEmpty()) // Should have been cleared by last usage
       val result = Try(f)
 
@@ -108,7 +108,7 @@ class DefaultPromiseTest {
     }
 
     /** Check each promise has the expected value. */
-    private def assertPromiseValues(): Unit = {
+    private def assertPromiseValues() {
       for ((cid, chain) <- chains; p <- chain.promises) {
         chain.state match {
           case Right(result) => assertEquals(Some(result), promises(p).value)
@@ -128,7 +128,7 @@ class DefaultPromiseTest {
     }
 
     /** Complete a promise */
-    def complete(p: PromiseId): Unit = {
+    def complete(p: PromiseId) {
       val r = Success(freshId())
       val (cid, chain) = promiseChain(p).get
       val (completionEffect, newState) = chain.state match {
@@ -170,7 +170,7 @@ class DefaultPromiseTest {
 
       // Perform the linking and merge the chains, if appropriate
 
-      checkEffect(linkEffect) { promiseA.linkRootOf(promiseB, null) }
+      checkEffect(linkEffect) { promiseA.linkRootOf(promiseB) }
 
       val (newCidA, newCidB) = mergeOp match {
         case NoMerge => (cidA, cidB)
@@ -201,8 +201,8 @@ class DefaultPromiseTest {
           (HandlersFired(result, Set(hid)), Right(result))
       }
       implicit val ec = new ExecutionContext {
-        def execute(r: Runnable): Unit = { r.run() }
-        def reportFailure(t: Throwable): Unit = { t.printStackTrace() }
+        def execute(r: Runnable) { r.run() }
+        def reportFailure(t: Throwable) { t.printStackTrace() }
       }
 
       checkEffect(attachEffect) { promise.onComplete(result => handlerQueue.add((result, hid))) }
@@ -223,7 +223,7 @@ class DefaultPromiseTest {
   case class AttachHandler(p: PromiseKey) extends Action
 
   /** Tests a sequence of actions on a Tester. Creates promises as needed. */
-  private def testActions(actions: Seq[Action]): Unit = {
+  private def testActions(actions: Seq[Action]) {
     val t = new Tester()
     var pMap = Map.empty[PromiseKey, PromiseId]
     def byKey(key: PromiseKey): PromiseId = {
@@ -243,7 +243,7 @@ class DefaultPromiseTest {
   }
 
   /** Tests all permutations of actions for `count` promises */
-  private def testPermutations(count: Int): Unit = {
+  private def testPermutations(count: Int) {
     val ps = (0 until count).toList
     val pPairs = for (a <- ps; b <- ps) yield (a, b)
 
@@ -255,20 +255,20 @@ class DefaultPromiseTest {
 
   /** Test all permutations of actions with a single promise */
   @Test
-  def testPermutations1: Unit = {
+  def testPermutations1 {
     testPermutations(1)
   }
 
   /** Test all permutations of actions with two promises - about 40 thousand */
   @Test
-  def testPermutations2: Unit = {
+  def testPermutations2 {
     testPermutations(2)
   }
 
   /** Link promises in different orders, using the same link structure as is
    *  used in Future.flatMap */
   @Test
-  def simulateFlatMapLinking: Unit = {
+  def simulateFlatMapLinking {
     val random = new scala.util.Random(1)
     for (_ <- 0 until 10) {
       val t = new Tester()
@@ -303,15 +303,15 @@ class DefaultPromiseTest {
   /** Link promises together on more than one thread, using the same link
    *  structure as is used in Future.flatMap */
   @Test
-  def testFlatMapLinking: Unit = {
+  def testFlatMapLinking {
     for (_ <- 0 until 100) {
       val flatMapCount = 100
       val startLatch = new CountDownLatch(1)
       val doneLatch = new CountDownLatch(flatMapCount + 1)
-      def execute(f: => Unit): Unit = {
+      def execute(f: => Unit) {
         val ec = ExecutionContext.global
         ec.execute(new Runnable {
-          def run(): Unit = {
+          def run() {
             try {
               startLatch.await()
               f
@@ -323,12 +323,12 @@ class DefaultPromiseTest {
         })
       }
       @tailrec
-      def flatMapTimes(count: Int, p1: DefaultPromise[Int]): Unit = {
+      def flatMapTimes(count: Int, p1: DefaultPromise[Int]) {
         if (count == 0) {
           execute { p1.success(1) }
         } else {
           val p2 = new DefaultPromise[Int]()
-          execute { p2.linkRootOf(p1, null) }
+          execute { p2.linkRootOf(p1) }
           flatMapTimes(count - 1, p2)
         }
       }

@@ -7,7 +7,7 @@ class Test {
 }
 
 object Main{
-  def main(args : Array[String]): Unit ={
+  def main(args : Array[String]){
     val fff=new Test()
     fff.foo()
     assert(1==fff.look)

@@ -5,9 +5,9 @@ class Ping {
 
   def name = "ping"
 
-  def loop: Unit =/*?*/ { poke() }
+  def loop/*?*/ { poke() }
 
-  def poke: Unit =/*?*/ { pong./*!*/poke() }
+  def poke/*?*/ { pong./*!*/poke() }
 
   override def toString = name
 }
@@ -16,7 +16,7 @@ class Pong(ping: Ping) {
 
   val name/*?*/ = "pong"
 
-  def poke(): Unit = { ping./*!*/poke() }
+  def poke() { ping./*!*/poke() }
 
   override def toString = name
 }

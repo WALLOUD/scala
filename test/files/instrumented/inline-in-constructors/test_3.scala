@@ -2,7 +2,7 @@ import scala.tools.partest.instrumented.Instrumentation._
 import instrumented._
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     if (scala.tools.partest.utils.Properties.isAvian) {
       println("!!!TEST SKIPPED!!!")
       println("Instrumentation is not supported on Avian.")

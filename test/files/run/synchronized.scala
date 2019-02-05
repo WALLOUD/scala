@@ -1,5 +1,3 @@
-// scalac: -opt:l:inline -opt-inline-from:**
-//
 /*
  * filter: inliner warnings;
  */
@@ -292,7 +290,7 @@ class C2 extends T
 object O2 extends T
 
 object Test extends App {
-  def check(name: String, result: Boolean): Unit = {
+  def check(name: String, result: Boolean) {
     println("%-10s %s" format (name +":", if (result) "OK" else "FAILED"))
   }
 

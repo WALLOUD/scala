@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -24,7 +12,7 @@ final class Precedence private (val level: Int) extends AnyVal with Ordered[Prec
 
 
 object Precedence extends (Int => Precedence) {
-  private[this] val ErrorName = "<error>"
+  private val ErrorName = "<error>"
   private def isAssignmentOp(name: String) = name match {
     case "!=" | "<=" | ">=" | "" => false
     case _                       => name.last == '=' && name.head != '=' && isOperatorPart(name.head)

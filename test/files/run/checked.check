@@ -1,7 +1,7 @@
 sum = 12
-[OK] Caught UFE: Uninitialized field: checked.scala: 44
+[OK] Caught UFE: Uninitialized field: checked.scala: 42
 2
-[OK] Caught UFE: Uninitialized field: checked.scala: 75
+[OK] Caught UFE: Uninitialized field: checked.scala: 73
 x = 10
 y = 11
 lz1 = 1

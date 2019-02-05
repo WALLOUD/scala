@@ -1,14 +1,24 @@
-trait Bar0[+A]
-trait Bar1[+This]
-class CBar extends Bar0[Int] with Bar1[CBar] { }
+import scala.collection._
 
-trait GSVL[+A, +This <: Bar0[A] with Bar1[This]] {
-  // There has to be a method in Foo
-  trait Foo { def f = ??? }
+trait GenSeqView0[+A, +Coll]
 
-  // There has to be a private method with a closure in Reversed,
-  // and it has to be a trait.
-  trait Reversed extends Foo {
-    private def g = { List(1) map (_ + 1) ; ??? }
+trait GenSeqViewLike[+A,
+                     +Coll,
+                     +This <: GenSeqView0[A, Coll] with GenSeqViewLike[A, Coll, Nothing]]
+extends GenSeq[A]  {
+self =>
+
+  trait Transformed[+B] {
+    def length: Int = 0
+    def apply(idx: Int): B = sys.error("")
+  }
+
+  trait Reversed extends Transformed[A] {
+    def iterator: Iterator[A] = createReversedIterator
+
+    private def createReversedIterator: Iterator[A] = {
+      self.foreach(_ => ())
+      null
+    }
   }
 }

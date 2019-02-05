@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2006-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala
@@ -15,9 +8,8 @@ package tools
 package util
 
 import java.net.URL
-
 import scala.tools.reflect.WrappedProperties.AccessControl
-import scala.tools.nsc.{CloseableRegistry, Settings}
+import scala.tools.nsc.Settings
 import scala.tools.nsc.util.ClassPath
 import scala.reflect.io.{Directory, File, Path}
 import PartialFunction.condOpt
@@ -31,18 +23,18 @@ object PathResolver {
   import AccessControl._
   import java.lang.System.{lineSeparator => EOL}
 
-  implicit class MkLines(val t: IterableOnce[_]) extends AnyVal {
-    def mkLines: String = t.iterator.mkString("", EOL, EOL)
+  implicit class MkLines(val t: TraversableOnce[_]) extends AnyVal {
+    def mkLines: String = t.mkString("", EOL, EOL)
     def mkLines(header: String, indented: Boolean = false, embraced: Boolean = false): String = {
       val space = "\u0020"
       val sep = if (indented) EOL + space * 2 else EOL
       val (lbrace, rbrace) = if (embraced) (space + "{", EOL + "}") else ("", "")
-      t.iterator.mkString(header + lbrace + sep, sep, rbrace + EOL)
+      t.mkString(header + lbrace + sep, sep, rbrace + EOL)
     }
   }
   implicit class AsLines(val s: String) extends AnyVal {
     // sm"""...""" could do this in one pass
-    def asLines = s.trim.stripMargin.linesIterator.mkLines
+    def asLines = s.trim.stripMargin.lines.mkLines
   }
 
   /** pretty print class path */
@@ -57,15 +49,8 @@ object PathResolver {
   object Environment {
     import scala.collection.JavaConverters._
 
-    private def searchForBootClasspath: String = {
-      val props = System.getProperties
-      // This formulation should be immune to ConcurrentModificationExceptions when system properties
-      // we're unlucky enough to witness a partially published result of System.setProperty or direct
-      // mutation of the System property map. stringPropertyNames internally uses the Enumeration interface,
-      // rather than Iterator, and this disables the fail-fast ConcurrentModificationException.
-      val propNames = props.stringPropertyNames()
-      propNames.asScala collectFirst { case k if k endsWith ".boot.class.path" => props.getProperty(k) } getOrElse ""
-    }
+    private def searchForBootClasspath =
+      System.getProperties.asScala collectFirst { case (k, v) if k endsWith ".boot.class.path" => v } getOrElse ""
 
     /** Environment variables which java pays attention to so it
      *  seems we do as well.
@@ -190,24 +175,19 @@ object PathResolver {
     } else {
       val settings = new Settings()
       val rest = settings.processArguments(args.toList, processAll = false)._2
-      val registry = new CloseableRegistry
-      try {
-        val pr = new PathResolver(settings, registry)
-        println("COMMAND: 'scala %s'".format(args.mkString(" ")))
-        println("RESIDUAL: 'scala %s'\n".format(rest.mkString(" ")))
+      val pr = new PathResolver(settings)
+      println("COMMAND: 'scala %s'".format(args.mkString(" ")))
+      println("RESIDUAL: 'scala %s'\n".format(rest.mkString(" ")))
 
-        pr.result match {
-          case cp: AggregateClassPath =>
-            println(s"ClassPath has ${cp.aggregates.size} entries and results in:\n${cp.asClassPathStrings}")
-        }
-      } finally {
-        registry.close()
+      pr.result match {
+        case cp: AggregateClassPath =>
+          println(s"ClassPath has ${cp.aggregates.size} entries and results in:\n${cp.asClassPathStrings}")
       }
     }
 }
 
-final class PathResolver(settings: Settings, closeableRegistry: CloseableRegistry) {
-  private val classPathFactory = new ClassPathFactory(settings, closeableRegistry)
+final class PathResolver(settings: Settings) {
+  private val classPathFactory = new ClassPathFactory(settings)
 
   import PathResolver.{ AsLines, Defaults, ppcp }
 
@@ -255,8 +235,8 @@ final class PathResolver(settings: Settings, closeableRegistry: CloseableRegistr
     import classPathFactory._
 
     // Assemble the elements!
-    def basis = List[Iterable[ClassPath]](
-      jrt,                                          // 0. The Java 9+ classpath (backed by the ct.sym or jrt:/ virtual system, if available)
+    def basis = List[Traversable[ClassPath]](
+      JrtClassPath.apply(),                         // 0. The Java 9 classpath (backed by the jrt:/ virtual system, if available)
       classesInPath(javaBootClassPath),             // 1. The Java bootstrap class path.
       contentsOfDirsInPath(javaExtDirs),            // 2. The Java extension class path.
       classesInExpandedPath(javaUserClassPath),     // 3. The Java application class path.
@@ -266,8 +246,6 @@ final class PathResolver(settings: Settings, closeableRegistry: CloseableRegistr
       classesInManifest(useManifestClassPath),      // 8. The Manifest class path.
       sourcesInPath(sourcePath)                     // 7. The Scala source path.
     )
-
-    private def jrt: Option[ClassPath] = JrtClassPath.apply(settings.releaseValue, closeableRegistry)
 
     lazy val containers = basis.flatten.distinct
 

@@ -9,11 +9,9 @@ import org.junit.runners.JUnit4
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.IntMap
-import scala.reflect.internal.util.JavaClearable
 import scala.tools.asm.tree._
 import scala.tools.nsc.backend.jvm.BackendReporting._
 import scala.tools.nsc.reporters.StoreReporter
-import scala.tools.testing.AssertUtil._
 import scala.tools.testing.BytecodeTesting
 import scala.tools.testing.BytecodeTesting._
 
@@ -26,7 +24,7 @@ class CallGraphTest extends BytecodeTesting {
 
 
   compiler.keepPerRunCachesAfterRun(List(
-    JavaClearable.forMap(bTypes.classBTypeCache),
+    bTypes.classBTypeCache,
     postProcessor.byteCodeRepository.compilingClasses,
     postProcessor.byteCodeRepository.parsedClasses,
     postProcessor.callGraph.callsites))
@@ -48,7 +46,7 @@ class CallGraphTest extends BytecodeTesting {
       val callee = callsite.callee.get
       assert(callee.callee == target)
       assert(callee.calleeDeclarationClass == calleeDeclClass)
-      assertEquals("safeToInline", safeToInline, callee.safeToInline)
+      assert(callee.safeToInline == safeToInline)
       assert(callee.annotatedInline == atInline)
       assert(callee.annotatedNoInline == atNoInline)
       assert(callsite.argInfos == argInfos)
@@ -144,7 +142,7 @@ class CallGraphTest extends BytecodeTesting {
     val m = getAsmMethod(c, "m")
     val List(fn) = callsInMethod(m)
     val forNameMeth = byteCodeRepository.methodNode("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;").get._1
-    val classTp = cachedClassBType("java/lang/Class")
+    val classTp = cachedClassBType("java/lang/Class").get
     val r = callGraph.callsites(m)(fn)
     checkCallsite(fn, m, forNameMeth, classTp, safeToInline = false, atInline = false, atNoInline = false)
   }
@@ -204,9 +202,9 @@ class CallGraphTest extends BytecodeTesting {
 
     compileClasses(code)
     def callIn(m: String) = callGraph.callsites.find(_._1.name == m).get._2.values.head
-    assertEquals(List((1, FunctionLiteral)),   callIn("t1").argInfos.toList)
-    assertEquals(List((1, ForwardedParam(2))), callIn("t2").argInfos.toList)
-    assertEquals(List((1, FunctionLiteral)),   callIn("t3").argInfos.toList)
-    assertEquals(Nil,                          callIn("t4").argInfos.toList)
+    assertEquals(callIn("t1").argInfos.toList, List((1, FunctionLiteral)))
+    assertEquals(callIn("t2").argInfos.toList, List((1, ForwardedParam(2))))
+    assertEquals(callIn("t3").argInfos.toList, List((1, FunctionLiteral)))
+    assertEquals(callIn("t4").argInfos.toList, Nil)
   }
 }

@@ -14,7 +14,7 @@ object Test {
     // case _                => "not a list"
   })
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     f(List(1, 2))
     f(List('a', 'b', 'c'))
     f(List('a', 'b', 'c', 'd'))

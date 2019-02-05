@@ -3,7 +3,7 @@ object Test extends App {
 
 
   // test that finally is not covered by any exception handlers.
-  def throwCatchFinally: Unit = {
+  def throwCatchFinally {
     try {
       bar
     } catch {
@@ -12,7 +12,7 @@ object Test extends App {
   }
 
   // test that finally is not covered by any exception handlers.
-  def bar: Unit = {
+  def bar {
     try {
       println("hi")
     }
@@ -26,7 +26,7 @@ object Test extends App {
   }
 
   // return in catch (finally is executed)
-  def retCatch: Unit = {
+  def retCatch {
     try {
       throw new Exception
     } catch {
@@ -37,7 +37,7 @@ object Test extends App {
   }
 
   // throw in catch (finally is executed, exception propagated)
-  def throwCatch: Unit = {
+  def throwCatch {
     try {
       throw new Exception
     } catch {
@@ -48,7 +48,7 @@ object Test extends App {
   }
 
   // return inside body (finally is executed)
-  def retBody: Unit = {
+  def retBody {
     try {
       return
     } catch {
@@ -59,7 +59,7 @@ object Test extends App {
   }
 
   // throw inside body (finally and catch are executed)
-  def throwBody: Unit = {
+  def throwBody {
     try {
       throw new Exception
     } catch {
@@ -69,7 +69,7 @@ object Test extends App {
   }
 
   // return inside finally (each finally is executed once)
-  def retFinally: Unit = {
+  def retFinally {
     try {
       try println("body")
       finally {
@@ -81,7 +81,7 @@ object Test extends App {
 
 
   // throw inside finally (finally is executed once, exception is propagated)
-  def throwFinally: Unit = {
+  def throwFinally {
     try {
       try println("body")
       finally {
@@ -106,7 +106,7 @@ object Test extends App {
       println("in finally 2")
     }
 
-  def test[A](m: => A, name: String): Unit = {
+  def test[A](m: => A, name: String) {
     println("Running %s".format(name))
     try {
       m

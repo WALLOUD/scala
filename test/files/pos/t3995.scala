@@ -1,8 +1,5 @@
-
-// scalac: -Yrangepos
-//
 class Lift {
-  def apply(f: F0): Unit = {}
+  def apply(f: F0) {}
 
   class F0
   object F0 {

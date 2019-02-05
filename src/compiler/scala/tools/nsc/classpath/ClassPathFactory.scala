@@ -1,20 +1,11 @@
 /*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+ * Copyright (c) 2014 Contributor. All rights reserved.
  */
-
 package scala.tools.nsc.classpath
 
 import scala.reflect.io.{AbstractFile, VirtualDirectory}
 import scala.reflect.io.Path.string2path
-import scala.tools.nsc.{CloseableRegistry, Settings}
+import scala.tools.nsc.Settings
 import FileUtils.AbstractFileOps
 import scala.tools.nsc.util.ClassPath
 
@@ -22,11 +13,11 @@ import scala.tools.nsc.util.ClassPath
  * Provides factory methods for classpath. When creating classpath instances for a given path,
  * it uses proper type of classpath depending on a types of particular files containing sources or classes.
  */
-class ClassPathFactory(settings: Settings, closeableRegistry: CloseableRegistry) {
+class ClassPathFactory(settings: Settings) {
   /**
     * Create a new classpath based on the abstract file.
     */
-  def newClassPath(file: AbstractFile): ClassPath = ClassPathFactory.newClassPath(file, settings, closeableRegistry)
+  def newClassPath(file: AbstractFile): ClassPath = ClassPathFactory.newClassPath(file, settings)
 
   /**
     * Creators for sub classpaths which preserve this context.
@@ -70,7 +61,7 @@ class ClassPathFactory(settings: Settings, closeableRegistry: CloseableRegistry)
 
   private def createSourcePath(file: AbstractFile): ClassPath =
     if (file.isJarOrZip)
-      ZipAndJarSourcePathFactory.create(file, settings, closeableRegistry)
+      ZipAndJarSourcePathFactory.create(file, settings)
     else if (file.isDirectory)
       DirectorySourcePath(file.file)
     else
@@ -78,11 +69,11 @@ class ClassPathFactory(settings: Settings, closeableRegistry: CloseableRegistry)
 }
 
 object ClassPathFactory {
-  def newClassPath(file: AbstractFile, settings: Settings, closeableRegistry: CloseableRegistry): ClassPath = file match {
+  def newClassPath(file: AbstractFile, settings: Settings): ClassPath = file match {
     case vd: VirtualDirectory => VirtualDirectoryClassPath(vd)
     case _ =>
       if (file.isJarOrZip)
-        ZipAndJarClassPathFactory.create(file, settings, closeableRegistry)
+        ZipAndJarClassPathFactory.create(file, settings)
       else if (file.isDirectory)
         DirectoryClassPath(file.file)
       else

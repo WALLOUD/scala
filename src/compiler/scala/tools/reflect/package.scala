@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Paul Phillips
  */
 
 package scala.tools
@@ -33,8 +26,8 @@ package object reflect {
   /** Creates a UI-less reporter that simply accumulates all the messages
    */
   def mkSilentFrontEnd(): FrontEnd = new FrontEnd {
-    def display(info: Info): Unit = {}
-    def interactive(): Unit = {}
+    def display(info: Info) {}
+    def interactive() {}
   }
 
   /** Creates a reporter that prints messages to the console according to the settings.

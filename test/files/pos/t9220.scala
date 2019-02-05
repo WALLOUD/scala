@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
   trait Command
   object Command {

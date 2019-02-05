@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 package foo
 
 class Bippy
@@ -11,6 +9,3 @@ object DINGO
 
 case class Hyrax()
 object HyRaX
-
-class Wacko
-object wackO

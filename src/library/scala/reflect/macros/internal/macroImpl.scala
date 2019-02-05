@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.reflect.macros
 package internal
 
@@ -27,4 +15,4 @@ package internal
  *  To lessen the weirdness we define this annotation as `private[scala]`.
  *  It will not prevent pickling, but it will prevent application developers (and scaladocs) from seeing the annotation.
  */
-private[scala] final class macroImpl(val referenceToMacroImpl: Any) extends scala.annotation.StaticAnnotation
+private[scala] class macroImpl(val referenceToMacroImpl: Any) extends scala.annotation.StaticAnnotation

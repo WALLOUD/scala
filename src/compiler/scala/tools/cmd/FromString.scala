@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools
@@ -65,7 +58,8 @@ object FromString {
   /** Implicit as the most likely to be useful as-is.
    */
   implicit val IntFromString: FromString[Int] = new FromString[Int] {
-    override def isDefinedAt(s: String)   = s.toIntOption.isDefined
-    def apply(s: String)                  = s.toInt
+    override def isDefinedAt(s: String)   = safeToInt(s).isDefined
+    def apply(s: String)                  = safeToInt(s).get
+    def safeToInt(s: String): Option[Int] = try Some(java.lang.Integer.parseInt(s)) catch { case _: NumberFormatException => None }
   }
 }

@@ -85,7 +85,7 @@ object Test5 {
     val Mon, Tue, Wed, Thu, Fri, Sat, Sun = Value
   }
 
-  def run: Unit = {
+  def run {
     val s1 = D1.ValueSet(D1.North, D1.East)
     val s2 = D2.North + D2.East
     println(s1)
@@ -96,8 +96,7 @@ object Test5 {
     println(s2.toBitMask.map(_.toBinaryString).toList)
     println(D1.ValueSet.fromBitMask(s1.toBitMask))
     println(D2.ValueSet.fromBitMask(s2.toBitMask))
-    val r: WeekDays.ValueSet = WeekDays.values.range(WeekDays.Tue, WeekDays.Sat)
-    println(r)
+    println(WeekDays.values.range(WeekDays.Tue, WeekDays.Sat))
   }
 }
 
@@ -118,9 +117,8 @@ object SerializationTest {
     prime
   }
 
-  def run: Unit = {
-    /* This is no longer possible with the proxy-based serialization for collections: */
-    //serialize(new B())
+  def run {
+    serialize(new B())
     serialize(new A())
   }
 }

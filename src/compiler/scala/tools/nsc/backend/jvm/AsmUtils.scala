@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2014 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc.backend.jvm
@@ -73,7 +66,7 @@ object AsmUtils {
   }
 
   def classFromBytes(bytes: Array[Byte]): ClassNode = {
-    val node = new ClassNode1()
+    val node = new ClassNode()
     new ClassReader(bytes).accept(node, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES)
 
     node
@@ -168,7 +161,7 @@ object AsmUtils {
   /**
    * Returns a human-readable representation of the given instruction sequence.
    */
-  def textify(insns: InsnList): String = textify(insns.iterator.asScala)
+  def textify(insns: InsnList): String = textify(insns.iterator().asScala)
 
   /**
    * Run ASM's CheckClassAdapter over a class. Returns None if no problem is found, otherwise

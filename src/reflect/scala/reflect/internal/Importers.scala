@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -52,7 +40,7 @@ trait Importers { to: SymbolTable =>
     // fixups and maps prevent stackoverflows in importer
     var pendingSyms = 0
     var pendingTpes = 0
-    lazy val fixups = scala.collection.mutable.ListBuffer[Function0[Unit]]()
+    lazy val fixups = scala.collection.mutable.MutableList[Function0[Unit]]()
     def addFixup(fixup: => Unit): Unit = fixups += (() => fixup)
     def tryFixup(): Unit = {
       if (pendingSyms == 0 && pendingTpes == 0) {
@@ -205,7 +193,7 @@ trait Importers { to: SymbolTable =>
           myexisting.orElse {
             val my = cachedRecreateSymbol(their)
             if (myscope != NoType) {
-              assert(myscope.decls.lookup(myname) == NoSymbol, s"$myname ${myscope.decl(myname)} $myexisting")
+              assert(myscope.decls.lookup(myname) == NoSymbol, myname+" "+myscope.decl(myname)+" "+myexisting)
               myscope.decls enter my
             }
             my

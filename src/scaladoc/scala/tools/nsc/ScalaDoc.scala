@@ -1,13 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* scaladoc, a documentation generator for Scala
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
+ * @author  Geoffrey Washburn
  */
 
 package scala.tools.nsc
@@ -50,7 +44,7 @@ class ScalaDoc {
           if (docSettings.debug.value) ex.printStackTrace()
           reporter.error(null, "fatal error: " + msg)
       }
-      finally reporter.finish()
+      finally reporter.printSummary()
 
     !reporter.reallyHasErrors
   }
@@ -63,8 +57,6 @@ class ScalaDoc {
  */
 class ScalaDocReporter(settings: Settings) extends ConsoleReporter(settings) {
   import scala.collection.mutable.LinkedHashMap
-
-  object Direct extends Severity(3)("DIRECT")
 
   // need to do sometimes lie so that the Global instance doesn't
   // trash all the symbols just because there was an error
@@ -80,11 +72,9 @@ class ScalaDocReporter(settings: Settings) extends ConsoleReporter(settings) {
 
   def printDelayedMessages(): Unit = delayedMessages.values.foreach(_.apply())
 
-  def printMessage(msg: String): Unit = display(NoPosition, msg, Direct)
-
-  override def finish(): Unit = {
+  override def printSummary(): Unit = {
     printDelayedMessages()
-    super.finish()
+    super.printSummary()
   }
 }
 

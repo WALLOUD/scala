@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 // none of these should complain about exhaustivity
 class Test {
   // It would fail on the following inputs: (_, false), (_, true)

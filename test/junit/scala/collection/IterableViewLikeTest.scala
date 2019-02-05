@@ -4,12 +4,13 @@ import org.junit.Assert._
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import language.postfixOps
 
 @RunWith(classOf[JUnit4])
 class IterableViewLikeTest {
 
   @Test
-  def hasCorrectDropAndTakeMethods(): Unit = {
+  def hasCorrectDropAndTakeMethods() {
     val iter = Iterable(1, 2, 3)
 
     import scala.language.postfixOps

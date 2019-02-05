@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -75,17 +63,11 @@ trait StdAttachments {
    */
   case object BackquotedIdentifierAttachment extends PlainAttachment
 
-  /** A pattern binding exempt from unused warning.
-   *
-   *  Its host `Ident` has been created from a pattern2 binding, `case x @ p`.
+  /** Indicates that the host `Ident` has been created from a pattern2 binding, `case x @ p`.
    *  In the absence of named parameters in patterns, allows nuanced warnings for unused variables.
    *  Hence, `case X(x = _) =>` would not warn; for now, `case X(x @ _) =>` is documentary if x is unused.
    */
-  case object NoWarnAttachment extends PlainAttachment
-
-  /** Indicates that a `ValDef` was synthesized from a pattern definition, `val P(x)`.
-   */
-  case object PatVarDefAttachment extends PlainAttachment
+  case object AtBoundIdentifierAttachment extends PlainAttachment
 
   /** Identifies trees are either result or intermediate value of for loop desugaring.
    */
@@ -119,6 +101,4 @@ trait StdAttachments {
   case object KnownDirectSubclassesCalled extends PlainAttachment
 
   class QualTypeSymAttachment(val sym: Symbol)
-
-  case object ConstructorNeedsFence extends PlainAttachment
 }

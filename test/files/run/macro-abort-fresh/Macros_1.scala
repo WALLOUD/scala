@@ -11,5 +11,5 @@ object Impls {
 }
 
 object Macros {
-  def foo: Nothing = macro Impls.impl
+  def foo = macro Impls.impl
 }

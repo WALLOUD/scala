@@ -1,9 +1,9 @@
 class Bar {
-  def bar(b: Int = 2): Unit = {}; def baz[X](b: Int = 2): Unit = {}
+  def bar(b: Int = 2) {}; def baz[X](b: Int = 2) {}
 }
 
 class Foo {
-  def foo(): Unit = {
+  def foo() {
     new Bar/*#*/().bar/*#*/()
     new Bar/*#*/().baz/*#*/[Any]()
     new Bar/*#*/().baz/*#*/()

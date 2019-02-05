@@ -1,8 +1,23 @@
+
+
 import scala.collection.mutable.Queue
+
+
+
+
+class ExtQueue[T] extends Queue[T] {
+  def printState {
+    println("-------------------")
+    println("Length: " + len)
+    println("First: " + first0)
+    println("First elem: " + first0.elem)
+    println("After first: " + first0.next)
+  }
+}
 
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     testEmpty
     testEnqueue
     testTwoEnqueues
@@ -10,7 +25,7 @@ object Test {
     testMoreEnqueues
   }
 
-  def testEmpty: Unit = {
+  def testEmpty {
     val queue = new Queue[Int]
 
     assert(queue.isEmpty)
@@ -27,7 +42,7 @@ object Test {
     assert(queue.dequeueAll(_ > 500).isEmpty)
   }
 
-  def testEnqueue: Unit = {
+  def testEnqueue {
     val queue = new Queue[Int]
 
     queue.enqueue(10)
@@ -64,8 +79,8 @@ object Test {
     assert(queue.isEmpty && queue.length == 0)
   }
 
-  def testTwoEnqueues: Unit = {
-    val queue = new Queue[Int]
+  def testTwoEnqueues {
+    val queue = new ExtQueue[Int]
     queue.enqueue(30)
     queue.enqueue(40)
 
@@ -73,6 +88,7 @@ object Test {
     assert(queue.size == 2)
     assert(queue.nonEmpty)
     assert(queue.front == 30)
+//    queue.printState
 
     val all = queue.dequeueAll(_ > 20)
     assert(all.size == 2)
@@ -82,8 +98,8 @@ object Test {
     assert(queue.isEmpty)
   }
 
-  def testFewEnqueues: Unit = {
-    val queue = new Queue[Int]
+  def testFewEnqueues {
+    val queue = new ExtQueue[Int]
     queue.enqueue(10)
     queue.enqueue(20)
 
@@ -92,27 +108,35 @@ object Test {
     assert(queue.head == 10)
     assert(queue.last == 20)
     assert(queue.front == 10)
+//    queue.printState
 
     val ten = queue.dequeue
     assert(ten == 10)
     assert(queue.length == 1)
+//    queue.printState
 
     queue.enqueue(30)
+//    queue.printState
     val gt25 = queue.dequeueFirst(_ > 25)
     assert(gt25 == Some(30))
     assert(queue.nonEmpty)
     assert(queue.length == 1)
     assert(queue.head == 20)
     assert(queue.front == 20)
+//    queue.printState
 
     queue.enqueue(30)
+//    queue.printState
     val lt25 = queue.dequeueFirst(_ < 25)
     assert(lt25 == Some(20))
     assert(queue.nonEmpty)
     assert(queue.length == 1)
+//    queue.printState
 
     queue.enqueue(40)
+//    queue.printState
     val all = queue.dequeueAll(_ > 20)
+//    queue.printState
     assert(all.size == 2)
     assert(all.contains(30))
     assert(all.contains(40))
@@ -121,14 +145,19 @@ object Test {
 
     queue.enqueue(50)
     queue.enqueue(60)
+//    queue.printState
     val allgt55 = queue.dequeueAll(_ > 55)
+//    println(allgt55)
+//    queue.printState
     assert(allgt55.size == 1)
     assert(allgt55.contains(60))
     assert(queue.length == 1)
 
     queue.enqueue(70)
     queue.enqueue(80)
+//    queue.printState
     val alllt75 = queue.dequeueAll(_ < 75)
+//    queue.printState
     assert(alllt75.size == 2)
     assert(alllt75.contains(70))
     assert(alllt75.contains(50))
@@ -138,8 +167,8 @@ object Test {
     assert(queue.front == 80)
   }
 
-  def testMoreEnqueues: Unit = {
-    val queue = new Queue[Int]
+  def testMoreEnqueues {
+    val queue = new ExtQueue[Int]
     for (i <- 0 until 10) queue.enqueue(i * 2)
 
     for (i <- 0 until 10) {
@@ -154,7 +183,10 @@ object Test {
     assert(queue.length == 10)
     assert(queue.nonEmpty)
 
+    //queue.printState
     val gt5 = queue.dequeueAll(_ > 4)
+    //queue.printState
+    //println(gt5)
     assert(gt5.size == 7)
     assert(queue.length == 3)
     assert(queue.nonEmpty)
@@ -185,11 +217,14 @@ object Test {
     assert(queue.length == 10)
 
     val foddgt25 = queue.dequeueFirst(num => num > 25 && num % 2 == 1)
-    assert(foddgt25 == Some(49), foddgt25)
+    assert(foddgt25 == Some(49))
     assert(queue.length == 9)
     assert(queue.nonEmpty)
 
+    //queue.printState
     val lt30 = queue.dequeueAll(_ < 30)
+    //println(lt30)
+    //queue.printState
     assert(lt30.size == 6)
     assert(queue.length == 3)
 

@@ -1,13 +1,13 @@
 class Test {
 
   @inline
-  def foo: Unit = {
+  def foo {
     def it = new {}
     (_: Any) => it
   }
 
   @inline
-  private def bar: Unit = {
+  private def bar {
     def it = new {}
     (_: Any) => it
   }

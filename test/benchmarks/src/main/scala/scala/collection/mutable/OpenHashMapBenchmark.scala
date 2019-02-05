@@ -57,7 +57,7 @@ private object OpenHashMapBenchmark {
     var maps: Array[OpenHashMap[K,Int]] = null
 
     @Setup
-    def threadSetup(params: BenchmarkParams): Unit = {
+    def threadSetup(params: BenchmarkParams) {
       size = params.getParam("size").toInt
       val n = math.ceil(minNanosPerInvocation / (nanosPerPut * size)).toInt
       _mapEntries = size * n
@@ -66,12 +66,12 @@ private object OpenHashMapBenchmark {
     }
 
     @Setup(Level.Iteration)
-    def iterationSetup: Unit = {
+    def iterationSetup {
       _operations = 0
     }
 
     @Setup(Level.Invocation)
-    def setup(params: IterationParams): Unit = {
+    def setup(params: IterationParams) {
       for (i <- 0 until maps.length) maps(i) = new OpenHashMap[K,Int](size)
 
       if (params.getType == IterationType.MEASUREMENT) {
@@ -81,7 +81,7 @@ private object OpenHashMapBenchmark {
     }
 
     @TearDown(Level.Iteration)
-    def iterationTeardown(params: IterationParams): Unit = {
+    def iterationTeardown(params: IterationParams) {
       if (params.getType == IterationType.MEASUREMENT) {
         // limit to smaller cases to avoid OOM
         _memory =
@@ -108,7 +108,7 @@ private object OpenHashMapBenchmark {
 
     /** Load the map with keys from `1` to `size`. */
     @Setup
-    def setup(params: BenchmarkParams): Unit = {
+    def setup(params: BenchmarkParams) {
       val size = params.getParam("size").toInt
       _keys = keyBuilder.build(size)
       put(map, keys, 0, size)
@@ -133,7 +133,7 @@ private object OpenHashMapBenchmark {
 
     /** Load the map with keys from `1` to `size`, removing half of them. */
     @Setup
-    def setup(params: BenchmarkParams): Unit = {
+    def setup(params: BenchmarkParams) {
       val size = params.getParam("size").toInt
       _keys = keyBuilder.build(size)
       put_remove(map, keys)
@@ -172,7 +172,7 @@ private object OpenHashMapBenchmark {
     * @param from lowest index in the range of keys to add
     * @param to highest index in the range of keys to add, plus one
     */
-  private[this] def put[K](map: OpenHashMap[K,Int], keys: KeySeq[K], from: Int, to: Int): Unit = {
+  private[this] def put[K](map: OpenHashMap[K,Int], keys: KeySeq[K], from: Int, to: Int) {
     var i = from
     while (i < to) {  // using a `for` expression instead adds significant overhead
       map.put(keys(i), i)
@@ -190,7 +190,7 @@ private object OpenHashMapBenchmark {
     * 
     * @param keys list of keys to use
     */
-  private def put_remove[K](map: OpenHashMap[K,Int], keys: KeySeq[K]): Unit = {
+  private def put_remove[K](map: OpenHashMap[K,Int], keys: KeySeq[K]) {
     val blocks = 25  // should be a non-trivial factor of `size`
     val size = keys.size
     val blockSize: Int = size / blocks
@@ -241,7 +241,7 @@ class OpenHashMapBenchmark {
 
   /** Test putting elements to a map of `Int` to `Int`. */
   @Benchmark
-  def put_Int(state: IntBulkPutState): Unit = {
+  def put_Int(state: IntBulkPutState) {
     var i = 0
     while (i < state.maps.length) {
       put(state.maps(i), state.keys)
@@ -251,7 +251,7 @@ class OpenHashMapBenchmark {
 
   /** Test putting and removing elements to a growing map of `Int` to `Int`. */
   @Benchmark
-  def put_remove_Int(state: IntBulkPutState): Unit = {
+  def put_remove_Int(state: IntBulkPutState) {
     var i = 0
     while (i < state.maps.length) {
       put_remove(state.maps(i), state.keys)
@@ -276,7 +276,7 @@ class OpenHashMapBenchmark {
 
   /** Test putting elements to a map of `AnyRef` to `Int`. */
   @Benchmark
-  def put_AnyRef(state: AnyRefBulkPutState): Unit = {
+  def put_AnyRef(state: AnyRefBulkPutState) {
     var i = 0
     while (i < state.maps.length) {
       put(state.maps(i), state.keys)
@@ -286,7 +286,7 @@ class OpenHashMapBenchmark {
 
   /** Test putting and removing elements to a growing map of `AnyRef` to `Int`. */
   @Benchmark
-  def put_remove_AnyRef(state: AnyRefBulkPutState): Unit = {
+  def put_remove_AnyRef(state: AnyRefBulkPutState) {
     var i = 0
     while (i < state.maps.length) {
       put_remove(state.maps(i), state.keys)

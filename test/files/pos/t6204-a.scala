@@ -1,7 +1,7 @@
 import scala.reflect.runtime.universe._
 
 object Bish {
-  def m: Unit = {
+  def m {
     object Bash {
       typeOf[Option[_]]
     }

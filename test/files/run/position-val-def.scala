@@ -6,8 +6,8 @@ import scala.tools.reflect.ToolBox
 object Test {
   val toolbox = cm.mkToolBox(options = "-Yrangepos")
 
-  def main(args: Array[String]): Unit = {
-    def test(expr: String): Unit = {
+  def main(args: Array[String]) {
+    def test(expr: String) {
       val t = toolbox.parse(expr)
       println(expr)
       println(show(t, printPositions = true))

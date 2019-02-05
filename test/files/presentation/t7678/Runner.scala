@@ -5,20 +5,19 @@ object Test extends InteractiveTest {
 
   import compiler._, definitions._
 
-  override def runDefaultTests(): Unit = {
-    def resolveTypeTagHyperlink(): Unit = {
+  override def runDefaultTests() {
+    def resolveTypeTagHyperlink() {
       val sym = compiler.askForResponse(() => compiler.currentRun.runDefinitions.TypeTagClass).get.swap.getOrElse(???)
       val r = new Response[Position]
       compiler.askLinkPos(sym, new BatchSourceFile("", source), r)
       r.get
     }
 
-    def checkTypeTagSymbolConsistent(): Unit = {
+    def checkTypeTagSymbolConsistent() {
       compiler.askForResponse {
         () => {
           val runDefinitions = currentRun.runDefinitions
           import runDefinitions._
-          import Predef._
           assert(TypeTagsClass.map(sym => getMemberClass(sym, tpnme.TypeTag)) == TypeTagClass)
           assert(TypeTagsClass.map(sym => getMemberClass(sym, tpnme.WeakTypeTag)) == WeakTypeTagClass)
           assert(TypeTagsClass.map(sym => getMemberModule(sym, nme.WeakTypeTag)) == WeakTypeTagModule)

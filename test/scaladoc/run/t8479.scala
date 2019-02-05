@@ -26,7 +26,7 @@ object Test extends ScaladocModelTest {
 
   override def scaladocSettings = ""
 
-  def testModel(rootPackage: Package): Unit = {
+  def testModel(rootPackage: Package) {
     // it didn't crash
   }
 }

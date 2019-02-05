@@ -7,14 +7,14 @@ object Outer {
   println("Outer")
   object Inner {
     println("Inner")
-    def i: Unit = {
+    def i {
       println("Inner.i")
     }
   }
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     Outer.Inner.i // we still don't initialize Outer here (but should we?)
 
     {println("About to reference Inner.i"); Outer}.Inner.i // Outer will be initialized.

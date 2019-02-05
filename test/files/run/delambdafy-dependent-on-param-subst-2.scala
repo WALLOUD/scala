@@ -6,7 +6,7 @@ class C
 class A { class C }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val a = new A
 
     // class O extends M[a.C] { def m(x: a.C) = true }

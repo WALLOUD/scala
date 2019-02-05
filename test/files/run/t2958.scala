@@ -10,7 +10,7 @@ object Test {
       "default"
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     assert(f(Array("1", "2")) == "12")
   }
 }

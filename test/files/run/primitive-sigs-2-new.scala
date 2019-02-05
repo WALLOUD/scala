@@ -1,5 +1,3 @@
-// scalac: -Ydelambdafy:inline
-//
 
 import scala.language.{ postfixOps }
 import scala.reflect.{ClassTag, classTag}

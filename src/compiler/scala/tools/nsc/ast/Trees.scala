@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
@@ -29,7 +22,7 @@ trait Trees extends scala.reflect.internal.Trees { self: Global =>
   case class DocDef(comment: DocComment, definition: Tree)
        extends Tree {
     override def symbol: Symbol = definition.symbol
-    override def symbol_=(sym: Symbol): Unit = { definition.symbol = sym }
+    override def symbol_=(sym: Symbol) { definition.symbol = sym }
     override def isDef = definition.isDef
     override def isTerm = definition.isTerm
     override def isType = definition.isType
@@ -158,7 +151,7 @@ trait Trees extends scala.reflect.internal.Trees { self: Global =>
 
   type ApiTransformer = super.Transformer
   class Transformer extends InternalTransformer {
-    def transformUnit(unit: CompilationUnit): Unit = {
+    def transformUnit(unit: CompilationUnit) {
       try unit.body = transform(unit.body)
       catch {
         case ex: Exception =>
@@ -174,7 +167,7 @@ trait Trees extends scala.reflect.internal.Trees { self: Global =>
   }
 
   object resetPos extends Traverser {
-    override def traverse(t: Tree): Unit = {
+    override def traverse(t: Tree) {
       if (t != EmptyTree) t.setPos(NoPosition)
       super.traverse(t)
     }
@@ -226,15 +219,15 @@ trait Trees extends scala.reflect.internal.Trees { self: Global =>
 
     val locals = util.HashSet[Symbol](8)
     val orderedLocals = scala.collection.mutable.ListBuffer[Symbol]()
-    def registerLocal(sym: Symbol): Unit = {
+    def registerLocal(sym: Symbol) {
       if (sym != null && sym != NoSymbol) {
-        if (debug && !(locals contains sym)) orderedLocals += sym
+        if (debug && !(locals contains sym)) orderedLocals append sym
         locals addEntry sym
       }
     }
 
     class MarkLocals extends self.InternalTraverser {
-      def markLocal(tree: Tree): Unit = {
+      def markLocal(tree: Tree) {
         if (tree.symbol != null && tree.symbol != NoSymbol) {
           val sym = tree.symbol
           registerLocal(sym)
@@ -296,10 +289,6 @@ trait Trees extends scala.reflect.internal.Trees { self: Global =>
                 transform(fn)
               case EmptyTree =>
                 tree
-              // The typer does not accept UnApply. Replace it to Apply, which can be retyped.
-              case UnApply(Apply(Select(prefix, termNames.unapply | termNames.unapplySeq),
-                                 List(Ident(termNames.SELECTOR_DUMMY))), args) =>
-                Apply(prefix, transformTrees(args))
               case _ =>
                 val dupl = tree.duplicate
                 // Typically the resetAttrs transformer cleans both symbols and types.

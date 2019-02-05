@@ -5,7 +5,7 @@ object Test extends DirectTest {
 
   override def code = ""
 
-  override def show(): Unit = {
+  override def show() {
     val global = newCompiler()
     import global._
 

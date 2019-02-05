@@ -14,5 +14,5 @@ object Macros {
     c.Expr[Int](typed)
   }
 
-  def foo: Int = macro impl
+  def foo = macro impl
 }

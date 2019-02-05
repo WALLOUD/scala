@@ -4,5 +4,5 @@ object Scaladoc4 {
    */
   2+2
 
-  def f: Unit = {}
+  def f {}
 }

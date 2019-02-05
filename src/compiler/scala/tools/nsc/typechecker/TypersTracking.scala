@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
@@ -84,7 +77,7 @@ trait TypersTracking {
     def indented(s: String): String =
       if (s == "") "" else currentIndent + s.replaceAll("\n", "\n" + currentIndent)
 
-    @inline private final def runWith[T](t: Tree)(body: => T): T = {
+    @inline final def runWith[T](t: Tree)(body: => T): T = {
       push(t)
       try body finally pop(t)
     }
@@ -98,12 +91,12 @@ trait TypersTracking {
       trees = trees.tail
       depth -= 1
     }
-    def show(s: String): Unit =     { if (s != "") out.println(s) }
+    def show(s: String)     { if (s != "") out.println(s) }
 
-    def showPush(tree: Tree, context: Context): Unit = {
+    def showPush(tree: Tree, context: Context) {
       showPush(tree, NOmode, WildcardType, context)
     }
-    def showPush(tree: Tree, mode: Mode, pt: Type, context: Context): Unit = {
+    def showPush(tree: Tree, mode: Mode, pt: Type, context: Context) {
       def tree_s = truncAndOneLine(ptTree(tree))
       def pt_s = if (pt.isWildcard || context.inTypeConstructorAllowed) "" else s": pt=$pt"
       def all_s = List(tree_s, pt_s, mode, fullSiteString(context)) filterNot (_ == "") mkString " "
@@ -115,7 +108,7 @@ trait TypersTracking {
       show(resetIfEmpty(indented("""\-> """ + s)))
       typedTree
     }
-    def showAdapt(original: Tree, adapted: Tree, pt: Type, context: Context): Unit = {
+    def showAdapt(original: Tree, adapted: Tree, pt: Type, context: Context) {
       if (!noPrintAdapt(original, adapted)) {
         def tree_s1 = inLightCyan(truncAndOneLine(ptTree(original)))
         def pt_s = if (pt.isWildcard) "" else s" based on pt $pt"
@@ -126,7 +119,7 @@ trait TypersTracking {
         show(indented(s"[adapt] $tree_s1 $tree_s2"))
       }
     }
-    def showTyped(tree: Tree): Unit = {
+    def showTyped(tree: Tree) {
       def class_s = tree match {
         case _: RefTree => ""
         case _          => " " + tree.shortClass
@@ -135,11 +128,15 @@ trait TypersTracking {
         show(indented(s"[typed$class_s] " + truncAndOneLine(ptTree(tree))))
     }
 
-    def beforeNextTyped(tree: Tree, mode: Mode, pt: Type, context: Context): Boolean = if (noPrintTyping(tree)) false else {
-      push(tree)
-      showPush(tree, mode, pt, context)
-      true
-    }
+    def nextTyped(tree: Tree, mode: Mode, pt: Type, context: Context)(body: => Tree): Tree =
+      nextTypedInternal(tree, showPush(tree, mode, pt, context))(body)
+
+    def nextTypedInternal(tree: Tree, pushFn: => Unit)(body: => Tree): Tree = (
+      if (noPrintTyping(tree))
+        body
+      else
+        runWith(tree) { pushFn ; showPop(body) }
+    )
 
     @inline final def printTyping(tree: Tree, s: => String) = {
       if (printTypings && !noPrintTyping(tree))

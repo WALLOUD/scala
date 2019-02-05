@@ -1,8 +1,4 @@
-import scala.reflect.ClassManifest
-
 // ticket #421
-
-import scala.tools.partest.Util.ArrayDeep
 
 @deprecated("Suppress warnings", since="2.11")
 object Test extends App {

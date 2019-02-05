@@ -45,7 +45,7 @@ class Foo_1 {
 
   import O._
 
-  def bar: Unit = {
+  def bar {
     /*_*/
   }
 }
@@ -55,7 +55,7 @@ class Foo_2 {
   val o = O
   import o._
 
-  def bar: Unit = {
+  def bar {
     /*_*/
   }
 }
@@ -65,7 +65,7 @@ class Foo_3 {
   val c = new C
   import c._
 
-  def bar: Unit = {
+  def bar {
     /*_*/
   }
 }

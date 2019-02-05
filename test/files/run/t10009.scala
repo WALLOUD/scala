@@ -3,7 +3,7 @@ import scala.reflect.runtime.universe._
 import scala.tools.reflect.ToolBox
 
 object Test {
-  def test(code: String, log: Boolean = false): Unit = {
+  def test(code: String, log: Boolean = false) {
     val tb = currentMirror.mkToolBox()
     val tree = tb.parse(code)
     val typed = tb.typecheck(tree)

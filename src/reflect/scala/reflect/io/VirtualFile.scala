@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -39,7 +32,7 @@ class VirtualFile(val name: String, override val path: String) extends AbstractF
     case _              => false
   }
 
-  private[this] var content = Array.emptyByteArray
+  private var content = Array.emptyByteArray
 
   def absolute = this
 
@@ -52,7 +45,7 @@ class VirtualFile(val name: String, override val path: String) extends AbstractF
 
   override def output: OutputStream = {
     new ByteArrayOutputStream() {
-      override def close(): Unit = {
+      override def close() {
         super.close()
         content = toByteArray()
       }

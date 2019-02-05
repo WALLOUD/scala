@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc.interpreter.shell
@@ -84,7 +77,7 @@ trait LoopCommands {
   }
 
   def helpSummary() = {
-    val usageWidth = commands.map(_.usageMsg.length).max
+    val usageWidth = commands map (_.usageMsg.length) max
     val formatStr  = s"%-${usageWidth}s %s"
 
     echo("All commands can be abbreviated, e.g., :he instead of :help.")
@@ -93,7 +86,7 @@ trait LoopCommands {
   }
   def ambiguousError(cmd: String): Result = {
     matchingCommands(cmd) match {
-      case Nil  => echo(s"No such command '$cmd'.  Type :help for help.")
+      case Nil  => echo(cmd + ": no such command.  Type :help for help.")
       case xs   => echo(cmd + " is ambiguous: did you mean " + xs.map(":" + _.name).mkString(" or ") + "?")
     }
     Result(keepRunning = true, None)
@@ -102,7 +95,7 @@ trait LoopCommands {
   // all commands with given prefix
   private def matchingCommands(cmd: String) = commands.filter(_.name.startsWith(cmd.stripPrefix(":")))
 
-  // extract unique command from partial name, or prefer exact match if multiple matches
+  // extract command from partial name, or prefer exact match if multiple matches
   private object CommandMatch {
     def unapply(name: String): Option[LoopCommand] =
       matchingCommands(name) match {
@@ -115,7 +108,6 @@ trait LoopCommands {
   // extract command name and rest of line
   private val commandish = """(\S+)(?:\s+)?(.*)""".r
 
-  // expect line includes leading colon
   def colonCommand(line: String): Result = line.trim match {
     case ""                                  => helpSummary()
     case commandish(CommandMatch(cmd), rest) => cmd(rest)
@@ -123,30 +115,21 @@ trait LoopCommands {
     case _                                   => echo("?")
   }
 
-  def colonCompletion(line: String, cursor: Int): Completion =
-    line match {
-      case commandish(name0, rest) =>
-        val name = name0 take cursor
-        val cmds = matchingCommands(name)
-        val cursorAtName = cursor <= name.length
-        cmds match {
-          case Nil                            => NoCompletion
-          case cmd :: Nil if !cursorAtName    => cmd.completion
-          case cmd :: Nil if cmd.name == name => NoCompletion
-          case cmd :: Nil =>
-            val completion = if (cmd.isInstanceOf[NullaryCmd] || cursor < line.length) cmd.name else cmd.name + " "
-            new Completion {
-              def resetVerbosity(): Unit = ()
-              def complete(buffer: String, cursor: Int) = CompletionResult(cursor = 1, List(completion))
-            }
-          case cmd :: rest =>
-            new Completion {
-              def resetVerbosity(): Unit = ()
-              def complete(buffer: String, cursor: Int) = CompletionResult(cursor = 1, cmds.map(_.name))
-            }
+  def colonCompletion(line: String, cursor: Int): Completion = line.trim match {
+    case commandish(name @ CommandMatch(cmd), rest) =>
+      if (name.length > cmd.name.length) cmd.completion
+      else
+        new Completion {
+          def resetVerbosity(): Unit = ()
+          def complete(buffer: String, cursor: Int) = CompletionResult(cursor - name.length + 1, List(cmd.name))
         }
-      case _       => NoCompletion
-    }
+    case commandish(name, _) if matchingCommands(name).nonEmpty =>
+      new Completion {
+        def resetVerbosity(): Unit = ()
+        def complete(buffer: String, cursor: Int) = CompletionResult(cursor - name.length + 1, matchingCommands(name).map(_.name))
+      }
+    case _ => NoCompletion
+  }
 
   class NullaryCmd(name: String, help: String, detailedHelp: Option[String],
     f: String => Result) extends LoopCommand(name, help, detailedHelp) {

@@ -2,7 +2,8 @@ import scala.*;
 import scala.math.Ordering;
 import scala.math.Numeric;
 import scala.collection.Seq;
-import scala.collection.Iterable;
+import scala.collection.Traversable;
+import scala.collection.Traversable$;
 import scala.collection.immutable.Set;
 import scala.collection.immutable.HashSet;
 import scala.collection.immutable.Map;
@@ -10,6 +11,7 @@ import scala.collection.immutable.Map$;
 import scala.collection.immutable.HashMap;
 import scala.collection.immutable.Vector;
 import scala.collection.immutable.List;
+import scala.collection.generic.CanBuildFrom;
 
 class A { };
 class B { };
@@ -46,30 +48,28 @@ public class fromjava {
     return y.head();
   }
   public static String list(List<String> x) {
-    // Needs cast since 2.13, as `drop` is not overridden in List.
-    // 2.12 has the same issue for methods that are not overridden, e.g., dropRight
-    List<String> y = (List<String>)x.drop(2);
+    List<String> y = x.drop(2);
     return y.head();
   }
   public static Tuple2<String, Integer> map(Map<String, Integer> x) {
-    Iterable<Tuple2<String, Integer>> y = x.drop(2);
+    Traversable<Tuple2<String, Integer>> y = x.drop(2);
     return y.head();
   }
-  public static <T> Object sum(Iterable<T> x) {
+  public static <T> Object sum(Traversable<T> x) {
     return x.sum(Contra.intNum);
   }
   // Looks like sum as given below fails under java5, so disabled.
   //
   // [partest] testing: [...]/files/pos/javaReadsSigs                                [FAILED]
-  // [partest] files/pos/javaReadsSigs/fromjava.java:62: name clash: sum(scala.collection.Iterable<A>) and <T>sum(scala.collection.Iterable<T>) have the same erasure
-  // [partest]   public static B sum(Iterable<A> x) {
+  // [partest] files/pos/javaReadsSigs/fromjava.java:62: name clash: sum(scala.collection.Traversable<A>) and <T>sum(scala.collection.Traversable<T>) have the same erasure
+  // [partest]   public static B sum(Traversable<A> x) {
   // [partest]                   ^
   //
   //
   // can't make this work with an actual CanBuildFrom: see #4389.
-  // public static B sum(Iterable<A> x) {
-  //   // have to cast it unfortunately: map in IterableLike returns
+  // public static B sum(Traversable<A> x) {
+  //   // have to cast it unfortunately: map in TraversableLike returns
   //   // "That" and such types seem to be signature poison.
-  //   return ((Iterable<B>)x.map(f1, null)).head();
+  //   return ((Traversable<B>)x.map(f1, null)).head();
   // }
 }

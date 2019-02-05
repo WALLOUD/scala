@@ -1,6 +1,6 @@
 class C { object O }
 trait T { _: C =>
-  def foo: Unit = {
+  def foo {
     class D { O }
     new D
   }

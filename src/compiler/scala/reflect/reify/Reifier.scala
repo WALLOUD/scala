@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.reflect.reify
 
 import scala.tools.nsc.Global
@@ -21,6 +9,7 @@ import scala.reflect.reify.utils.Utils
  *  See more info in the comments to `reify` in scala.reflect.api.Universe.
  *
  *  @author   Martin Odersky
+ *  @version  2.10
  *  @since    2.10
  */
 abstract class Reifier extends States

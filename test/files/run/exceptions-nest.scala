@@ -133,7 +133,7 @@ object Test extends App {
     catch { case e if (x10 == 1) => 1 }
   }
 
-   def test11: Unit = {
+   def test11 {
     try { () }
     catch { case e: Throwable => () }
   }

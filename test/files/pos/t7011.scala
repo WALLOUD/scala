@@ -1,9 +1,7 @@
-// scalac: -Ydebug -Xfatal-warnings
-//
 object bar {
-	def foo: Unit = {
+	def foo {
     lazy val x = 42
 
-    def f = {()=>x}
+    {()=>x}
   }
 }

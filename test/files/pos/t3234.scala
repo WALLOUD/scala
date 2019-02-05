@@ -1,6 +1,3 @@
-
-// scalac: -opt:l:inline -opt-inline-from:** -opt-warnings -Xfatal-warnings
-//
 trait Trait1 {
   @inline final def foo2(n: Int) = n*n
 }

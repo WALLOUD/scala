@@ -8,7 +8,7 @@ object Test extends ReplTest {
 :kind scala.Option
 :k (Int, Int) => Int
 :k -v Either
-:k -v scala.collection.SortedMapOps
+:k -v scala.collection.generic.ImmutableSortedMapFactory
 :kind -v Tuple2
 :kind -v Tuple2[Int, Int]
 trait Functor[F[_]] {}

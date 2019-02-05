@@ -1,6 +1,3 @@
-
-
-// scalac: -Xsource:2.13
 import scala.language.higherKinds
 
 final case class Coproduct[F[_], G[_], A](run: Either[F[A], G[A]])

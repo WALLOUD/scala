@@ -14,7 +14,7 @@ object Test extends ReplTest {
 
 package hello {
   object Hello {
-    def main(a: Array[String]): Unit = {
+    def main(a: Array[String]) {
       System.out.println("shello, world.")
     }
   }

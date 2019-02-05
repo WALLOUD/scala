@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala.concurrent
 
@@ -25,9 +21,8 @@ package scala.concurrent
  *  @param  body   the computation to run to completion in another thread
  *
  *  @author  Paul Phillips
- *  @since 2.8
+ *  @version 2.8
  */
-@deprecated("`DelayedLazyVal` Will be removed in Scala 2.14.0 release.", since = "2.13.0")
 class DelayedLazyVal[T](f: () => T, body: => Unit)(implicit exec: ExecutionContext){
   @volatile private[this] var _isDone = false
   private[this] lazy val complete = f()
@@ -36,7 +31,7 @@ class DelayedLazyVal[T](f: () => T, body: => Unit)(implicit exec: ExecutionConte
    *
    *  @return true if the computation is complete.
    */
-  def isDone: Boolean = _isDone
+  def isDone = _isDone
 
   /** The current result of f(), or the final result if complete.
    *
@@ -44,7 +39,5 @@ class DelayedLazyVal[T](f: () => T, body: => Unit)(implicit exec: ExecutionConte
    */
   def apply(): T = if (isDone) complete else f()
 
-  exec.execute(() => {
-    body; _isDone = true
-  })
+  exec.execute(new Runnable { def run = { body; _isDone = true } })
 }

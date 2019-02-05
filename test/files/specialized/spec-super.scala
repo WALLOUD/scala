@@ -1,7 +1,7 @@
 
 // see ticket #3651
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val s = new Extended("s")
     println(s.foo) //works
 

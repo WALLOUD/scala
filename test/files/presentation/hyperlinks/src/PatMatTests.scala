@@ -7,7 +7,7 @@ case class CaseTwo(str: String) extends BaseType
 
 class PatMatTests {
 
-  def foo(x: BaseType): Unit = {
+  def foo(x: BaseType) {
     x match {
       case CaseOne/*#*/(10, first :: second :: Nil) =>
         val tmp = 23
@@ -19,7 +19,7 @@ class PatMatTests {
     }
   }
 
-  def multipleAssign(): Unit = {
+  def multipleAssign() {
     val (x, y) = ("abc", "def")
 
     println(x/*#*/, y/*#*/)

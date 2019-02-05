@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 object Test extends App {
   val y = (0: Int) match {
     case 1 => 1

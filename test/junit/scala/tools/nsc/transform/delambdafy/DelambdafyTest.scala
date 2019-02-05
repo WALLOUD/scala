@@ -12,7 +12,7 @@ import scala.tools.testing.TempDir
 
 @RunWith(classOf[JUnit4])
 class DelambdafyTest {
-  def compileToMultipleOutputWithDelambdafyMethod(): List[(String, Array[Byte])] = {
+  def compileToMultipleOutputWithDelamdbafyMethod(): List[(String, Array[Byte])] = {
     val codeForMultiOutput = """
 object Delambdafy {
   type -->[D, I] = PartialFunction[D, I]
@@ -64,7 +64,7 @@ object Delambdafy {
 
   @Test
   def shouldFindOutputFoldersForAllPromotedLambdasAsMethod(): Unit = {
-    val actual = compileToMultipleOutputWithDelambdafyMethod()
+    val actual = compileToMultipleOutputWithDelamdbafyMethod()
 
     assertTrue(actual.length > 0)
   }

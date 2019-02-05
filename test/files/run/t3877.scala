@@ -1,7 +1,7 @@
 object Test {
   val LIMIT = 10
 
-  def test1: Unit = {
+  def test1 {
     var d = 2
     var i = 0 // avoid infinite loops
     while (d < LIMIT && i < LIMIT) {
@@ -12,7 +12,7 @@ object Test {
     }
   }
 
-  def test2: Unit = {
+  def test2 {
     var d = 2
     var i = 0
     while (true) {
@@ -26,7 +26,7 @@ object Test {
     }
   }
 
-  def test3: Unit = {
+  def test3 {
     var d = 2
     var i = 0
     do {
@@ -37,7 +37,7 @@ object Test {
     } while (d < LIMIT && i < LIMIT)
   }
 
-  def test4: Unit = {
+  def test4 {
     var d = 2
     var i = 0
     do {
@@ -50,7 +50,7 @@ object Test {
     } while (true)
   }
 
-  def test5: Unit = {
+  def test5 {
     var d = 2
     var i = 0
     while (d < LIMIT && i < LIMIT) {
@@ -71,7 +71,7 @@ object Test {
   }
 
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     test1
     test2
     test3

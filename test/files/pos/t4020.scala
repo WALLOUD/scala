@@ -1,6 +1,3 @@
-
-// scalac: -Xfatal-warnings
-//
 class A {
     sealed trait Foo
 }

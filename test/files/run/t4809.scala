@@ -6,7 +6,7 @@ import scala.util.control.Breaks._
 
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val x = tryBreakable {
       break
       2

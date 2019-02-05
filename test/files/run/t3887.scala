@@ -1,5 +1,5 @@
 object Test {
-    def main(args: Array[String]): Unit = {
+    def main(args: Array[String]) {
         assert( matchPair(1) )
         assert( !matchPair(2) )
     }

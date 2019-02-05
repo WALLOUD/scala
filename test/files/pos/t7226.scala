@@ -2,11 +2,11 @@ trait HK {
   type Rep[X]
 
   // okay
-  def unzip2[A, B](ps: Rep[List[(A, B)]]): Unit
+  def unzip2[A, B](ps: Rep[List[(A, B)]])
   unzip2(null.asInstanceOf[Rep[List[(Int, String)]]])
 
   // okay
-  def unzipHK[A, B, C[_]](ps: Rep[C[(A, B)]]): Unit
+  def unzipHK[A, B, C[_]](ps: Rep[C[(A, B)]])
   unzipHK(null.asInstanceOf[Rep[List[(Int, String)]]])
 
   def unzipHKRet0[A, C[_]](ps: C[A]): C[Int]

@@ -26,7 +26,7 @@ object A {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     assert(A.B2.t1.source == "from B2")
   }
 }

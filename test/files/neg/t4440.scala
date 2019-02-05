@@ -1,5 +1,3 @@
-// scalac: -unchecked -Xfatal-warnings
-//
 // constructors used to drop outer fields when they were not accessed
 // however, how can you know (respecting separate compilation) that they're not accessed!?
 class Outer { final class Inner }

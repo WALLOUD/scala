@@ -1,5 +1,3 @@
-// scalac: -Xlint:implicit-not-found -Xfatal-warnings
-//
 object Test {
   trait =!=[C, D]
 

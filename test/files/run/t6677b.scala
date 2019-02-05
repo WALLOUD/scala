@@ -15,7 +15,7 @@ trait B extends U {
 class C {
   val ab: A with B = new A with B // `B with A` works.
 
-  def foo: Unit = {
+  def foo {
     // fails
     new ab.u.X
 
@@ -25,7 +25,7 @@ class C {
   }
 }
 object Test {
-	def main(args: Array[String]): Unit = {
+	def main(args: Array[String]) {
     // java.lang.NoSuchMethodError: A.u()LB$U11;
     // at C.foo(t6677b.scala:23)
 		new C().foo

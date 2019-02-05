@@ -9,7 +9,7 @@ object Main {
     }).asInstanceOf[T#AType]
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     println(mkArray[I](1))
     //java.lang.ClassCastException: [I cannot be cast to [Ljava.lang.Object;
   }

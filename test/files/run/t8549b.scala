@@ -8,7 +8,7 @@ class D extends Serializable
 
 
 object Test extends App {
-  def checkId(cls: Class[_]): Unit = {
+  def checkId(cls: Class[_]) {
     val field = cls.getDeclaredField("serialVersionUID")
     assert(isPrivate(field.getModifiers))
     field.setAccessible(true)

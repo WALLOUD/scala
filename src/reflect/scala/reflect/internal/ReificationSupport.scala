@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -336,8 +324,8 @@ trait ReificationSupport { self: SymbolTable =>
         require(vd.rhs.isEmpty, "self types must have empty right hand side")
         copyValDef(vd)(mods = (vd.mods | PRIVATE) & (~DEFERRED))
       case _ =>
-        throw new IllegalArgumentException(
-          s"""$tree is not a valid representation of self type, consider reformatting into q"val $$self: $$T" shape""")
+        throw new IllegalArgumentException(s"$tree is not a valid representation of self type, " +
+                                           """consider reformatting into q"val $self: $T" shape""")
     }
 
     object SyntacticClassDef extends SyntacticClassDefExtractor {
@@ -445,7 +433,7 @@ trait ReificationSupport { self: SymbolTable =>
 
       def unapply(tree: Tree): Option[List[Tree]] = tree match {
         case Literal(Constant(())) =>
-          SomeOfNil
+          Some(Nil)
         case Apply(MaybeTypeTreeOriginal(SyntacticTypeApplied(MaybeSelectApply(TupleCompanionRef(sym)), targs)), args)
           if sym == TupleClass(args.length).companionModule
           && (targs.isEmpty || targs.length == args.length) =>
@@ -465,7 +453,7 @@ trait ReificationSupport { self: SymbolTable =>
 
       def unapply(tree: Tree): Option[List[Tree]] = tree match {
         case MaybeTypeTreeOriginal(UnitClassRef(_)) =>
-          SomeOfNil
+          Some(Nil)
         case MaybeTypeTreeOriginal(AppliedTypeTree(TupleClassRef(sym), args))
           if sym == TupleClass(args.length) =>
           Some(args)
@@ -519,7 +507,7 @@ trait ReificationSupport { self: SymbolTable =>
       def unapply(tree: Tree): Option[List[Tree]] = tree match {
         case bl @ self.Block(stats, SyntheticUnit()) => Some(treeInfo.untypecheckedBlockBody(bl))
         case bl @ self.Block(stats, expr)            => Some(treeInfo.untypecheckedBlockBody(bl) :+ expr)
-        case SyntheticUnit()                         => SomeOfNil
+        case SyntheticUnit()                         => Some(Nil)
         case _ if tree.isTerm && tree.nonEmpty       => Some(tree :: Nil)
         case _                                       => None
       }
@@ -678,7 +666,7 @@ trait ReificationSupport { self: SymbolTable =>
       def transformStats(trees: List[Tree]): List[Tree] = trees match {
         case Nil => Nil
         case ValDef(mods, _, SyntacticEmptyTypeTree(), Match(MaybeTyped(MaybeUnchecked(value), tpt), CaseDef(pat, EmptyTree, SyntacticTuple(ids)) :: Nil)) :: tail
-          if mods.hasAllFlags(SYNTHETIC | ARTIFACT) =>
+          if mods.hasFlag(SYNTHETIC) && mods.hasFlag(ARTIFACT) =>
           ids match {
             case Nil =>
               ValDef(NoMods, nme.QUASIQUOTE_PAT_DEF, Typed(pat, tpt), transform(value)) :: transformStats(tail)
@@ -716,7 +704,7 @@ trait ReificationSupport { self: SymbolTable =>
     protected object UnSyntheticParam {
       def unapply(tree: Tree): Option[TermName] = tree match {
         case ValDef(mods, name, _, EmptyTree)
-          if mods.hasAllFlags(SYNTHETIC | PARAM) =>
+          if mods.hasFlag(SYNTHETIC) && mods.hasFlag(PARAM) =>
           Some(name)
         case _ => None
       }
@@ -911,7 +899,7 @@ trait ReificationSupport { self: SymbolTable =>
           if pf.tpe != null && pf.tpe.typeSymbol.eq(PartialFunctionClass) &&
              abspf.tpe != null && abspf.tpe.typeSymbol.eq(AbstractPartialFunctionClass) &&
              ser.tpe != null && ser.tpe.typeSymbol.eq(SerializableClass) &&
-             clsMods.hasAllFlags(FINAL | SYNTHETIC) =>
+             clsMods.hasFlag(FINAL) && clsMods.hasFlag(SYNTHETIC) =>
           Some(cases)
         case _ => None
       }
@@ -969,8 +957,11 @@ trait ReificationSupport { self: SymbolTable =>
     object SyntacticImport extends SyntacticImportExtractor {
       // construct/deconstruct {_} import selector
       private object WildcardSelector {
-        def apply(offset: Int): ImportSelector = ImportSelector.wildAt(offset)
-        def unapply(sel: ImportSelector): Option[Int] = if (sel.isWildcard) Some(sel.namePos) else None
+        def apply(offset: Int): ImportSelector = ImportSelector(nme.WILDCARD, offset, null, -1)
+        def unapply(sel: ImportSelector): Option[Int] = sel match {
+          case ImportSelector(nme.WILDCARD, offset, null, -1) => Some(offset)
+          case _                                              => None
+        }
       }
 
       // construct/deconstruct {foo} import selector
@@ -988,20 +979,24 @@ trait ReificationSupport { self: SymbolTable =>
       private object RenameSelector {
         def apply(name1: TermName, offset1: Int, name2: TermName, offset2: Int): ImportSelector =
           ImportSelector(name1, offset1, name2, offset2)
-        def unapply(sel: ImportSelector): Option[(TermName, Int, TermName, Int)] =
-          if (sel.isRename) {
-            val ImportSelector(name1, offset1, name2, offset2) = sel
+        def unapply(sel: ImportSelector): Option[(TermName, Int, TermName, Int)] = sel match {
+          case ImportSelector(_, _, null | nme.WILDCARD, _) =>
+            None
+          case ImportSelector(name1, offset1, name2, offset2) if name1 != name2 =>
             Some((name1.toTermName, offset1, name2.toTermName, offset2))
-          } else None
+          case _ =>
+            None
+        }
       }
 
       // construct/deconstruct {foo => _} import selector
       private object UnimportSelector {
         def apply(name: TermName, offset: Int): ImportSelector =
           ImportSelector(name, offset, nme.WILDCARD, -1)
-        def unapply(sel: ImportSelector): Option[(TermName, Int)] =
-          if (sel.isMask) Some((sel.name.toTermName, sel.namePos))
-          else None
+        def unapply(sel: ImportSelector): Option[(TermName, Int)] = sel match {
+          case ImportSelector(name, offset, nme.WILDCARD, _) => Some((name.toTermName, offset))
+          case _                                             => None
+        }
       }
 
       // represent {_} import selector as pq"_"

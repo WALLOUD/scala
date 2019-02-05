@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 class A {
   def f1 = Some(5) == 5
   def f2 = 5 == Some(5)

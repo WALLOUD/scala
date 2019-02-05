@@ -1,14 +1,10 @@
-/*
- * Scala classfile decoder (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*     ___ ____ ___   __   ___   ___
+**    / _// __// _ | / /  / _ | / _ \    Scala classfile decoder
+**  __\ \/ /__/ __ |/ /__/ __ |/ ___/    (c) 2003-2013, LAMP/EPFL
+** /____/\___/_/ |_/____/_/ |_/_/        http://scala-lang.org/
+**
+*/
+
 
 package scala.tools.scalap
 
@@ -119,7 +115,7 @@ class JavaWriter(classfile: Classfile, writer: Writer) extends CodeWriter(writer
 
   def isConstr(name: String) = (name == "<init>")
 
-  def printField(flags: Int, name: Int, tpe: Int, attribs: List[cf.Attribute]): Unit = {
+  def printField(flags: Int, name: Int, tpe: Int, attribs: List[cf.Attribute]) {
     print(flagsToStr(false, flags))
     if ((flags & 0x0010) != 0)
       print("val " + NameTransformer.decode(getName(name)))
@@ -128,7 +124,7 @@ class JavaWriter(classfile: Classfile, writer: Writer) extends CodeWriter(writer
     print(": " + getType(tpe) + ";").newline
   }
 
-  def printMethod(flags: Int, name: Int, tpe: Int, attribs: List[cf.Attribute]): Unit = {
+  def printMethod(flags: Int, name: Int, tpe: Int, attribs: List[cf.Attribute]) {
     if (getName(name) == "<init>")
     print(flagsToStr(false, flags))
     if (getName(name) == "<init>") {
@@ -154,7 +150,7 @@ class JavaWriter(classfile: Classfile, writer: Writer) extends CodeWriter(writer
     }
   }
 
-  def printClassHeader(): Unit = {
+  def printClassHeader() {
     if (isInterface(cf.flags)) {
       print("trait " + getSimpleClassName(cf.classname))
     } else {
@@ -167,7 +163,7 @@ class JavaWriter(classfile: Classfile, writer: Writer) extends CodeWriter(writer
     }
   }
 
-  def printClass(): Unit = {
+  def printClass() {
     val pck = getPackage(cf.classname)
     if (pck.length() > 0)
       println("package " + pck + ";")

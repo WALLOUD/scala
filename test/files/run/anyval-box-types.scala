@@ -1,5 +1,3 @@
-// scalac: -Xmaxwarns 0 -opt:l:method
-//
 object Test extends App {
 
   val one: java.lang.Integer = 1

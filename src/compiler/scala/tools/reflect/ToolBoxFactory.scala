@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package tools
 package reflect
@@ -18,11 +6,11 @@ import scala.tools.cmd.CommandLineParser
 import scala.tools.nsc.reporters._
 import scala.tools.nsc.CompilerCommand
 import scala.tools.nsc.io.{AbstractFile, VirtualDirectory}
-import scala.reflect.internal.util.{AbstractFileClassLoader, NoSourceFile}
+import scala.reflect.internal.util.AbstractFileClassLoader
 import scala.reflect.internal.Flags._
+import scala.reflect.internal.util.NoSourceFile
 import java.lang.{Class => jClass}
 import java.lang.System.{lineSeparator => EOL}
-
 import scala.reflect.NameTransformer
 import scala.reflect.api.JavaUniverse
 import scala.reflect.io.NoAbstractFile
@@ -72,7 +60,7 @@ abstract class ToolBoxFactory[U <: JavaUniverse](val u: U) { factorySelf =>
         undoLog.clear()
         analyzer.lastTreeToTyper = EmptyTree
         lastSeenSourceFile = NoSourceFile
-        lastSeenContext = analyzer.NoContext
+        lastSeenContext = null
       }
 
       def verify(expr: Tree): Tree = {
@@ -239,14 +227,14 @@ abstract class ToolBoxFactory[U <: JavaUniverse](val u: U) { factorySelf =>
             val (fv, name) = schema
             meth.newValueParameter(name, newFlags = if (fv.hasStableFlag) STABLE else 0) setInfo appliedType(definitions.FunctionClass(0).tpe, List(fv.tpe.resultType))
           }
-          meth setInfo MethodType(freeTerms.map(makeParam _).toList, AnyTpe)
+          meth setInfo MethodType(freeTerms.map(makeParam).toList, AnyTpe)
           minfo.decls enter meth
           def defOwner(tree: Tree): Symbol = tree find (_.isDef) map (_.symbol) match {
             case Some(sym) if sym != null && sym != NoSymbol => sym.owner
             case _ => NoSymbol
           }
           trace("wrapping ")(defOwner(expr) -> meth)
-          val methdef = DefDef(meth, expr changeOwner (defOwner(expr), meth))
+          val methdef = DefDef(meth, expr changeOwner (defOwner(expr) -> meth))
 
           val moduledef = ModuleDef(
               obj,

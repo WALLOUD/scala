@@ -1,10 +1,9 @@
 object Test {
-  trait Immutable
   trait Immortal
   class Bippy extends Immutable with Immortal
   class Boppy extends Immutable
 
-  def f[T](x: Iterable[T]) = x match {
+  def f[T](x: Traversable[T]) = x match {
     case _: Map[_, _]   => 3
     case _: Seq[_]      => 2
     case _: Iterable[_] => 1

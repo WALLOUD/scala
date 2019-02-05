@@ -1,5 +1,3 @@
-// scalac: -Xlint:missing-interpolator -Xfatal-warnings
-//
 
 trait X {
   val s = "hello"

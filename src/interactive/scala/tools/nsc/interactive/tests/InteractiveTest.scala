@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2009-2013 Typesafe/Scala Solutions and LAMP/EPFL
+ * @author Martin Odersky
  */
-
 package scala.tools.nsc
 package interactive
 package tests
@@ -75,10 +67,12 @@ abstract class InteractiveTest
   /** Add new presentation compiler actions to test. Presentation compiler's test
    *  need to extends trait `PresentationCompilerTestDef`.
    */
-  protected def ++(tests: PresentationCompilerTestDef*): Unit = testActions ++= tests
+  protected def ++(tests: PresentationCompilerTestDef*) {
+    testActions ++= tests
+  }
 
   /** Test's entry point */
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     try execute()
     finally askShutdown()
   }
@@ -89,13 +83,13 @@ abstract class InteractiveTest
         loadSources()
         runDefaultTests()
       }
-    }.linesIterator.map(normalize).foreach(println)
+    }.lines.map(normalize).foreach(println)
   }
 
   protected def normalize(s: String) = s
 
   /** Load all sources before executing the test. */
-  protected def loadSources(): Unit = {
+  protected def loadSources() {
     // ask the presentation compiler to track all sources. We do
     // not wait for the file to be entirely typed because we do want
     // to exercise the presentation compiler on scoped type requests.
@@ -107,7 +101,7 @@ abstract class InteractiveTest
   }
 
   /** Run all defined `PresentationCompilerTestDef` */
-  protected def runDefaultTests(): Unit = {
+  protected def runDefaultTests() {
     //TODO: integrate random tests!, i.e.: if (runRandomTests) randomTests(20, sourceFiles)
     testActions.foreach(_.runTest())
   }

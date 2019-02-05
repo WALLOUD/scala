@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 package bippy {
   object Fail1 {
     def main(args: Array[String]): Any = ()

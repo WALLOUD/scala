@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc.interpreter
@@ -40,15 +33,11 @@ object Naming {
       cleaned map (ch => if (ch.isWhitespace || ch == ESC) ch else if (ch < 32) '?' else ch)
   }
 
-  // Uncompiled regex pattern to detect `line` package and members
-  // `read`, `eval`, `print`, for purposes of filtering output and stack traces.
-  //
   // The two name forms this is catching are the two sides of this assignment:
   //
   // $line3.$read.$iw.$iw.Bippy =
   //   $line3.$read$$iw$$iw$Bippy@4a6a00ca
-  //
-  lazy val lineRegex: String = {
+  lazy val lineRegex = {
     val sn = sessionNames
     val members = List(sn.read, sn.eval, sn.print) map Regex.quote mkString("(?:", "|", ")")
     Regex.quote(sn.line) + """\d+[./]""" + members + """[$.]"""
@@ -105,7 +94,7 @@ trait Naming {
   def freshInternalVarName() = internalVar()
   def freshLineId() = { _freshLineId += 1 ; _freshLineId}
 
-  def resetAllCreators(): Unit = {
+  def resetAllCreators() {
     userVar.reset()
     internalVar.reset()
     _freshLineId = 0

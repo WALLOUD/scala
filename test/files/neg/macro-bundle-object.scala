@@ -7,5 +7,5 @@ object Bundle {
 }
 
 object Macros {
-  def foo: Any = macro Bundle.impl
+  def foo = macro Bundle.impl
 }

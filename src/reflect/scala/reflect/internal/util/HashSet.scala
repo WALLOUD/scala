@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -20,13 +13,13 @@ object HashSet {
     new HashSet[T](label, initialCapacity)
 }
 
-class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) extends Set[T] with scala.collection.mutable.Clearable {
-  private[this] var used = 0
-  private[this] var table = new Array[AnyRef](initialCapacity)
+class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) extends Set[T] with scala.collection.generic.Clearable {
+  private var used = 0
+  private var table = new Array[AnyRef](initialCapacity)
   private def index(x: Int): Int = math.abs(x % table.length)
 
   def size: Int = used
-  def clear(): Unit = {
+  def clear() {
     used = 0
     table = new Array[AnyRef](initialCapacity)
   }
@@ -57,7 +50,7 @@ class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) exte
     entry.asInstanceOf[T]
   }
 
-  def addEntry(x: T): Unit = {
+  def addEntry(x: T) {
     var h = index(x.##)
     var entry = table(h)
     while (entry ne null) {
@@ -69,12 +62,12 @@ class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) exte
     used += 1
     if (used > (table.length >> 2)) growTable()
   }
-  def addEntries(xs: IterableOnce[T]): Unit = {
-    xs.iterator foreach addEntry
+  def addEntries(xs: TraversableOnce[T]) {
+    xs foreach addEntry
   }
 
-  def iterator: Iterator[T] = new collection.AbstractIterator[T] {
-    private[this] var i = 0
+  def iterator = new Iterator[T] {
+    private var i = 0
     def hasNext: Boolean = {
       while (i < table.length && (table(i) eq null)) i += 1
       i < table.length
@@ -84,7 +77,7 @@ class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) exte
       else null
   }
 
-  private def addOldEntry(x: T): Unit = {
+  private def addOldEntry(x: T) {
     var h = index(x.##)
     var entry = table(h)
     while (entry ne null) {
@@ -94,7 +87,7 @@ class HashSet[T >: Null <: AnyRef](val label: String, initialCapacity: Int) exte
     table(h) = x
   }
 
-  private def growTable(): Unit = {
+  private def growTable() {
     val oldtable = table
     val growthFactor =
       if (table.length <= initialCapacity) 8

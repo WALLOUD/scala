@@ -1,5 +1,3 @@
-// scalac: -Xlog-implicit-conversions
-//
 class A {
   def f(xs: Array[Byte]) = xs.size
   def g(xs: Array[Byte]) = xs.length

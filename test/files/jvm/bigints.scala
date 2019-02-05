@@ -4,14 +4,14 @@
 *  @author Stephane Micheloud
 */
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     Test_BigInt.runTest()
     Test_BigDecimal.runTest()
   }
 }
 
 object Test_BigInt {
-  def runTest(): Unit = {
+  def runTest() {
     import BigInt._
 
     val x: BigInt = 1
@@ -26,7 +26,7 @@ object Test_BigInt {
 }
 
 object Test_BigDecimal {
-  def runTest(): Unit = {
+  def runTest() {
     import scala.BigDecimal, BigDecimal._
 
     val xi: BigDecimal = 1

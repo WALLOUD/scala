@@ -1,5 +1,3 @@
-/* scalac: -Xsource:3.0 */
-
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.duration.Duration.Inf
@@ -38,11 +36,10 @@ class FutureTests extends MinimalScalaTest {
 
   "A future with custom ExecutionContext" should {
     "shouldHandleThrowables" in {
-      val ms = new concurrent.TrieMap[Throwable, Unit]
+      val ms = new mutable.HashSet[Throwable] with mutable.SynchronizedSet[Throwable]
       implicit val ec = scala.concurrent.ExecutionContext.fromExecutor(new java.util.concurrent.ForkJoinPool(), {
         t =>
-        val u = ()
-        ms += (t -> u)
+        ms += t
       })
 
       class ThrowableTest(m: String) extends Throwable(m)
@@ -63,14 +60,14 @@ class FutureTests extends MinimalScalaTest {
       val f3 = f2 map { s => s.toUpperCase }
 
       f2 foreach { _ => throw new ThrowableTest("dispatcher foreach") }
-      f2 onComplete { case Success(_) => throw new ThrowableTest("dispatcher receive"); case _ => }
+      f2 onSuccess { case _ => throw new ThrowableTest("dispatcher receive") }
 
       latch.open()
 
       Await.result(f2, defaultTimeout) mustBe ("success")
 
       f2 foreach { _ => throw new ThrowableTest("current thread foreach") }
-      f2 onComplete { case Success(_) => throw new ThrowableTest("current thread receive"); case _ => }
+      f2 onSuccess { case _ => throw new ThrowableTest("current thread receive") }
 
       Await.result(f3, defaultTimeout) mustBe ("SUCCESS")
 
@@ -114,6 +111,7 @@ class FutureTests extends MinimalScalaTest {
       val s = "foo"
       val f = Future.successful(s)
 
+      ECNotUsed(ec => f.onFailure({ case _ => fail("onFailure should not have been called") })(ec))
       assert( ECNotUsed(ec => f.recover({ case _ => fail("recover should not have been called")})(ec)) eq f)
       assert( ECNotUsed(ec => f.recoverWith({ case _ => fail("flatMap should not have been called")})(ec)) eq f)
       assert(f.fallbackTo(f) eq f, "Future.fallbackTo must be the same instance as Future.fallbackTo")
@@ -129,6 +127,7 @@ class FutureTests extends MinimalScalaTest {
       assert(f.failed.value == Some(Success(e)), "Future.failed.failed must become successful") // scala/bug#10034
 
               ECNotUsed(ec => f.foreach(_ => fail("foreach should not have been called"))(ec))
+              ECNotUsed(ec => f.onSuccess({ case _ => fail("onSuccess should not have been called") })(ec))
       assert( ECNotUsed(ec => f.map(_ => fail("map should not have been called"))(ec)) eq f)
       assert( ECNotUsed(ec => f.flatMap(_ => fail("flatMap should not have been called"))(ec)) eq f)
       assert( ECNotUsed(ec => f.filter(_ => fail("filter should not have been called"))(ec)) eq f)
@@ -138,6 +137,23 @@ class FutureTests extends MinimalScalaTest {
   }
 
   "The Future companion object" should {
+    "call ExecutionContext.prepare on apply" in {
+      val p = Promise[Boolean]()
+      val ec = new ExecutionContext {
+        val delegate = ExecutionContext.global
+        override def prepare(): ExecutionContext = {
+          p.success(true)
+          delegate.prepare
+        }
+        override def execute(r: Runnable) = delegate.execute(r)
+        override def reportFailure(t: Throwable): Unit = delegate.reportFailure(t)
+      }
+
+      val f = Future("foo")(ec)
+      Await.result(f, defaultTimeout) mustBe ("foo")
+      Await.result(p.future, defaultTimeout) mustBe (true)
+    }
+
     "have a unit member representing an already completed Future containing Unit" in {
       assert(Future.unit ne null, "Future.unit must not be null")
       assert(Future.unit eq Future.unit, "Future.unit must be the same instance as Future.unit")
@@ -165,6 +181,8 @@ class FutureTests extends MinimalScalaTest {
       assert(test.mapTo[String] eq test)
 
       ECNotUsed(ec => test.foreach(_ => fail("foreach should not have been called"))(ec))
+      ECNotUsed(ec => test.onSuccess({ case _ => fail("onSuccess should not have been called") })(ec))
+      ECNotUsed(ec => test.onFailure({ case _ => fail("onFailure should not have been called") })(ec))
       ECNotUsed(ec => test.onComplete({ case _ => fail("onComplete should not have been called") })(ec))
       ECNotUsed(ec => test.transform(identity, identity)(ec) eq test)
       ECNotUsed(ec => test.transform(identity)(ec) eq test)
@@ -181,18 +199,14 @@ class FutureTests extends MinimalScalaTest {
   }
 
   "The default ExecutionContext" should {
-    import ExecutionContext.Implicits._
     "report uncaught exceptions" in {
       val p = Promise[Throwable]()
-      val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(null, p.trySuccess(_))
-      val t = new Exception()
-      try {
-        ec.execute(() => throw t)
-        Await.result(p.future, 4.seconds) mustBe t
-      } finally {
-        ec.shutdown()
-      }
+      val logThrowable: Throwable => Unit = p.trySuccess(_)
+      val ec: ExecutionContext = ExecutionContext.fromExecutor(null, logThrowable)
 
+      val t = new InterruptedException()
+      val f = Future(throw t)(ec)
+      Await.result(p.future, 4.seconds) mustBe t
     }
   }
 
@@ -209,13 +223,13 @@ class FutureTests extends MinimalScalaTest {
         a <- future0.mapTo[Int]  // returns 5
         b <- async(a)            // returns "10"
         c <- async(7)            // returns "14"
-      } yield s"$b-$c"
+      } yield b + "-" + c
 
       val future2 = for {
         a <- future0.mapTo[Int]
         b <- (Future { (a * 2).toString }).mapTo[Int]
         c <- Future { (7 * 2).toString }
-      } yield s"$b-$c"
+      } yield b + "-" + c
 
       Await.result(future1, defaultTimeout) mustBe ("10-14")
       assert(checkType(future1, manifest[String]))
@@ -234,13 +248,13 @@ class FutureTests extends MinimalScalaTest {
         Res(a: Int) <- async(Req("Hello"))
         Res(b: String) <- async(Req(a))
         Res(c: String) <- async(Req(7))
-      } yield s"$b-$c"
+      } yield b + "-" + c
 
       val future2 = for {
         Res(a: Int) <- async(Req("Hello"))
         Res(b: Int) <- async(Req(a))
         Res(c: Int) <- async(Req(7))
-      } yield s"$b-$c"
+      } yield b + "-" + c
 
       Await.result(future1, defaultTimeout) mustBe ("10-14")
       intercept[NoSuchElementException] { Await.result(future2, defaultTimeout) }
@@ -488,7 +502,7 @@ class FutureTests extends MinimalScalaTest {
       val result = Future.find[Int](futures)(_ == 3)
       Await.result(result, defaultTimeout) mustBe (Some(3))
 
-      val notFound = Future.find[Int](futures)(_ == 11)
+      val notFound = Future.find[Int](futures.iterator)(_ == 11)
       Await.result(notFound, defaultTimeout) mustBe (None)
     }
 
@@ -551,13 +565,13 @@ class FutureTests extends MinimalScalaTest {
       val futures = (0 to 9) map {
         idx => async(idx, idx * 20)
       }
-      val folded = Future.foldLeft(futures)(0)(_ + _)
+      val folded = Future.fold(futures)(0)(_ + _)
       Await.result(folded, timeout) mustBe (45)
 
       val futuresit = (0 to 9) map {
         idx => async(idx, idx * 20)
       }
-      val foldedit = Future.foldLeft(futures)(0)(_ + _)
+      val foldedit = Future.fold(futures)(0)(_ + _)
       Await.result(foldedit, timeout) mustBe (45)
     }
 
@@ -586,7 +600,7 @@ class FutureTests extends MinimalScalaTest {
       def futures = (0 to 9) map {
         idx => async(idx, idx * 10)
       }
-      val folded = Future.foldLeft(futures)(0)(_ + _)
+      val folded = Future.fold(futures)(0)(_ + _)
       intercept[IllegalArgumentException] {
         Await.result(folded, timeout)
       }.getMessage mustBe ("shouldFoldResultsWithException: expected")
@@ -594,9 +608,9 @@ class FutureTests extends MinimalScalaTest {
 
     "fold mutable zeroes safely" in {
       import scala.collection.mutable.ArrayBuffer
-      def test(testNumber: Int): Unit = {
+      def test(testNumber: Int) {
         val fs = (0 to 1000) map (i => Future(i))
-        val f = Future.foldLeft(fs)(ArrayBuffer.empty[AnyRef]) {
+        val f = Future.fold(fs)(ArrayBuffer.empty[AnyRef]) {
           case (l, i) if i % 2 == 0 => l += i.asInstanceOf[AnyRef]
           case (l, _)               => l
         }
@@ -609,7 +623,7 @@ class FutureTests extends MinimalScalaTest {
     }
 
     "return zero value if folding empty list" in {
-      val zero = Future.foldLeft(List[Future[Int]]())(0)(_ + _)
+      val zero = Future.fold(List[Future[Int]]())(0)(_ + _)
       Await.result(zero, defaultTimeout) mustBe (0)
     }
 
@@ -621,11 +635,11 @@ class FutureTests extends MinimalScalaTest {
       val timeout = 10000 millis
 
       val futures = (0 to 9) map { async }
-      val reduced = Future.reduceLeft(futures)(_ + _)
+      val reduced = Future.reduce(futures)(_ + _)
       Await.result(reduced, timeout) mustBe (45)
 
       val futuresit = (0 to 9) map { async }
-      val reducedit = Future.reduceLeft(futuresit)(_ + _)
+      val reducedit = Future.reduce(futuresit)(_ + _)
       Await.result(reducedit, timeout) mustBe (45)
     }
 
@@ -639,7 +653,7 @@ class FutureTests extends MinimalScalaTest {
       def futures = (1 to 10) map {
         idx => async(idx, idx * 10)
       }
-      val failed = Future.reduceLeft(futures)(_ + _)
+      val failed = Future.reduce(futures)(_ + _)
       intercept[IllegalArgumentException] {
         Await.result(failed, timeout)
       }.getMessage mustBe ("shouldFoldResultsWithException: expected")
@@ -647,7 +661,7 @@ class FutureTests extends MinimalScalaTest {
 
     "shouldReduceThrowNSEEOnEmptyInput" in {
       intercept[java.util.NoSuchElementException] {
-        val emptyreduced = Future.reduceLeft(List[Future[Int]]())(_ + _)
+        val emptyreduced = Future.reduce(List[Future[Int]]())(_ + _)
         Await.result(emptyreduced, defaultTimeout)
       }
     }
@@ -801,26 +815,6 @@ class FutureTests extends MinimalScalaTest {
       val expected = try Success(5 / 0) catch { case a: ArithmeticException => Failure(a) }
       val f = Future(5).map(_ / 0)
       Await.ready(f, defaultTimeout).value.get.toString mustBe expected.toString
-    }
-
-    "should delegate equivalently to unit.flatMap on failure" in {
-      val t = new Exception("test")
-      val df = Future.delegate(throw t)
-      val fm = Future.unit.flatMap(_ => throw t)
-
-      Await.ready(df, defaultTimeout)
-      Await.ready(fm, defaultTimeout)
-      df.value mustBe fm.value
-    }
-
-    "should delegate equivalently to unit.flatMap on success" in {
-      val f = Future.successful("test")
-      val df = Future.delegate(f)
-      val fm = Future.unit.flatMap(_ => f)
-
-      Await.ready(df, defaultTimeout)
-      Await.ready(fm, defaultTimeout)
-      df.value mustBe fm.value
     }
 
   }

@@ -13,7 +13,7 @@ import ExecutionContext.Implicits.global
   */
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val arrSz = 50 * 10000
     val numFutures = 4000
 
@@ -21,7 +21,7 @@ object Test {
     val longStandingPromise = Promise[Nothing]
 
     val futures = List.tabulate(numFutures) { i =>
-      val arr = new Array[Int](arrSz)
+      val arr = Array.tabulate(arrSz)(identity)
       val idx = rng.nextInt(arrSz)
       val f1 = Future {
         arr

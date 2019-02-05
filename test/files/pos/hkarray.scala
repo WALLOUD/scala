@@ -1,4 +1,3 @@
-// scalac: -Xfatal-warnings -language:higherKinds
 trait Foo[CC[_]] { }
 
 class Bip {

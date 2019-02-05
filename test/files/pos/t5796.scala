@@ -1,5 +1,5 @@
 object Bug {
-  def foo(): Unit = {
+  def foo() {
     val v = {
       lazy val s = 0
       s

@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings -Xlint
-//
 object Foo { def eq(x: Int) = x }
 
 class X { def ==(other: String) = other.nonEmpty }

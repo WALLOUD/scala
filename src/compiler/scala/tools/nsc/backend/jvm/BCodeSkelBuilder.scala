@@ -1,14 +1,8 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2012 LAMP/EPFL
+ * @author  Martin Odersky
  */
+
 
 package scala.tools.nsc
 package backend
@@ -19,6 +13,7 @@ import scala.tools.nsc.symtab._
 import scala.tools.asm
 import GenBCode._
 import BackendReporting._
+import scala.tools.nsc.backend.jvm.BCodeHelpers.InvokeStyle
 
 /*
  *
@@ -83,69 +78,27 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
 
     def tpeTK(tree: Tree): BType = typeToBType(tree.tpe)
 
-
-    private def canAssignModuleInClinit(cd: ClassDef, sym: Symbol): Boolean = {
-      import global.definitions._
-      val parentsArePure = claszSymbol.parentSymbols.forall(sym => sym == ObjectClass || isFunctionSymbol(sym) || isAbstractFunctionSymbol(sym) || sym == definitions.SerializableClass)
-      def isPureConstructor(dd: DefDef): Boolean = {
-        dd.rhs match {
-          case Block(stats, _) => treeInfo.isSuperConstrCall(stats.last)
-          case _ => false
-        }
-      }
-      def constructorsArePure = cd.impl.body.iterator.collect {
-        case dd: DefDef if dd.symbol.isConstructor => dd
-      }.forall(isPureConstructor)
-      parentsArePure && constructorsArePure 
-    }
-
     /* ---------------- helper utils for generating classes and fields ---------------- */
 
-    def genPlainClass(cd0: ClassDef): Unit = {
+    def genPlainClass(cd: ClassDef) {
       assert(cnode == null, "GenBCode detected nested methods.")
 
-      claszSymbol       = cd0.symbol
+      claszSymbol       = cd.symbol
       isCZParcelable    = isAndroidParcelableClass(claszSymbol)
       isCZStaticModule  = isStaticModuleClass(claszSymbol)
       thisBType         = classBTypeFromSymbol(claszSymbol)
 
-      cnode = new ClassNode1()
+      cnode = new asm.tree.ClassNode()
 
       initJClass(cnode)
-      val cd = if (isCZStaticModule) {
-        // Move statements from the primary constructor following the superclass constructor call to
-        // a newly synthesised tree representing the "<clinit>", which also assigns the MODULE$ field.
-        // Because the assigments to both the module instance fields, and the fields of the module itself
-        // are in the <clinit>, these fields can be static + final.
-
-        // TODO should we do this transformation earlier, say in Constructors? Or would that just cause
-        // pain for scala-{js, native}?
-
-        for (f <- fieldSymbols(claszSymbol)) {
-          f.setFlag(Flags.STATIC)
-        }
-        val constructorDefDef = treeInfo.firstConstructor(cd0.impl.body).asInstanceOf[DefDef]
-        val (uptoSuperStats, remainingConstrStats) = treeInfo.splitAtSuper(constructorDefDef.rhs.asInstanceOf[Block].stats, classOnly = true)
-        val clInitSymbol = claszSymbol.newMethod(nme.CLASS_CONSTRUCTOR, claszSymbol.pos, Flags.STATIC).setInfo(NullaryMethodType(definitions.UnitTpe))
-
-        // We don't need to enter this field into the decls of claszSymbol.info as this is added manually to the generated class
-        // in addModuleInstanceField. TODO: try adding it to the decls and making the usual field generation do the right thing.
-        val moduleField = claszSymbol.newValue(nme.MODULE_INSTANCE_FIELD, claszSymbol.pos, Flags.STATIC | Flags.PRIVATE).setInfo(claszSymbol.tpeHK)
-
-        val callConstructor = NewFromConstructor(claszSymbol.primaryConstructor).setType(claszSymbol.tpeHK)
-        val assignModuleField = Assign(global.gen.mkAttributedRef(moduleField).setType(claszSymbol.tpeHK), callConstructor).setType(definitions.UnitTpe)
-        val remainingConstrStatsSubst = remainingConstrStats.map(_.substituteThis(claszSymbol, global.gen.mkAttributedRef(claszSymbol.sourceModule)).changeOwner(claszSymbol.primaryConstructor -> clInitSymbol))
-        val clinit = DefDef(clInitSymbol, Block(assignModuleField :: remainingConstrStatsSubst, Literal(Constant(())).setType(definitions.UnitTpe)).setType(definitions.UnitTpe))
-        deriveClassDef(cd0)(tmpl => deriveTemplate(tmpl)(body =>
-          clinit :: body.map {
-            case `constructorDefDef` => copyDefDef(constructorDefDef)(rhs = Block(uptoSuperStats, constructorDefDef.rhs.asInstanceOf[Block].expr))
-            case tree => tree
-          }
-        ))
-      } else cd0
 
       val hasStaticCtor = methodSymbols(cd) exists (_.isStaticConstructor)
-      if (!hasStaticCtor && isCZParcelable) fabricateStaticInitAndroid()
+      if (!hasStaticCtor) {
+        // but needs one ...
+        if (isCZStaticModule || isCZParcelable) {
+          fabricateStaticInit()
+        }
+      }
 
       val optSerial: Option[Long] = serialVUID(claszSymbol)
       /* serialVersionUID can't be put on interfaces (it's a private field).
@@ -169,7 +122,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
     /*
      * must-single-thread
      */
-    private def initJClass(jclass: asm.ClassVisitor): Unit = {
+    private def initJClass(jclass: asm.ClassVisitor) {
 
       val bType = classBTypeFromSymbol(claszSymbol)
       val superClass = bType.info.get.superClass.getOrElse(ObjectRef).internalName
@@ -226,9 +179,15 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
     /*
      * can-multi-thread
      */
-    private def addModuleInstanceField(): Unit = {
+    private def addModuleInstanceField() {
       // TODO confirm whether we really don't want ACC_SYNTHETIC nor ACC_DEPRECATED
-      val mods = GenBCode.PublicStaticFinal
+      // scala/scala-dev#194:
+      //   This can't be FINAL on JVM 1.9+ because we assign it from within the
+      //   instance constructor, not from <clinit> directly. Assignment from <clinit>,
+      //   after the constructor has completely finished, seems like the principled
+      //   thing to do, but it would change behaviour when "benign" cyclic references
+      //   between modules exist.
+      val mods = GenBCode.PublicStatic
       val fv =
         cnode.visitField(mods,
                          strMODULE_INSTANCE_FIELD,
@@ -240,13 +199,10 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
       fv.visitEnd()
     }
 
-    protected def assignModuleInstanceField(meth: asm.MethodVisitor): Unit = {
-      meth.visitFieldInsn(asm.Opcodes.PUTSTATIC, thisBType.internalName, strMODULE_INSTANCE_FIELD, thisBType.descriptor)
-    }
     /*
      * must-single-thread
      */
-    private def fabricateStaticInitAndroid(): Unit = {
+    private def fabricateStaticInit() {
 
       val clinit: asm.MethodVisitor = cnode.visitMethod(
         GenBCode.PublicStatic, // TODO confirm whether we really don't want ACC_SYNTHETIC nor ACC_DEPRECATED
@@ -257,14 +213,20 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
       )
       clinit.visitCode()
 
+      /* "legacy static initialization" */
+      if (isCZStaticModule) {
+        clinit.visitTypeInsn(asm.Opcodes.NEW, thisBType.internalName)
+        clinit.visitMethodInsn(asm.Opcodes.INVOKESPECIAL,
+                               thisBType.internalName, INSTANCE_CONSTRUCTOR_NAME, "()V", false)
+      }
       if (isCZParcelable) { legacyAddCreatorCode(clinit, cnode, thisBType.internalName) }
-
       clinit.visitInsn(asm.Opcodes.RETURN)
+
       clinit.visitMaxs(0, 0) // just to follow protocol, dummy arguments
       clinit.visitEnd()
     }
 
-    def addClassFields(): Unit = {
+    def addClassFields() {
       for (f <- fieldSymbols(claszSymbol)) {
         val javagensig = getGenericSignature(f, claszSymbol)
         val flags = javaFieldFlags(f)
@@ -351,10 +313,10 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
      *  emitted for that purpose as described in `genLoadTry()` and `genSynchronized()`.
      */
     var cleanups: List[asm.Label] = Nil
-    def registerCleanup(finCleanup: asm.Label): Unit = {
+    def registerCleanup(finCleanup: asm.Label) {
       if (finCleanup != null) { cleanups = finCleanup :: cleanups }
     }
-    def unregisterCleanup(finCleanup: asm.Label): Unit = {
+    def unregisterCleanup(finCleanup: asm.Label) {
       if (finCleanup != null) {
         assert(cleanups.head eq finCleanup,
                s"Bad nesting of cleanup operations: $cleanups trying to unregister: $finCleanup")
@@ -382,7 +344,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
 
       private var nxtIdx = -1 // next available index for local-var
 
-      def reset(isStaticMethod: Boolean): Unit = {
+      def reset(isStaticMethod: Boolean) {
         slots.clear()
         nxtIdx = if (isStaticMethod) 0 else 1
       }
@@ -421,12 +383,12 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
       }
 
       // not to be confused with `fieldStore` and `fieldLoad` which also take a symbol but a field-symbol.
-      def store(locSym: Symbol): Unit = {
+      def store(locSym: Symbol) {
         val Local(tk, _, idx, _) = slots(locSym)
         bc.store(idx, tk)
       }
 
-      def load(locSym: Symbol): Unit = {
+      def load(locSym: Symbol) {
         val Local(tk, _, idx, _) = slots(locSym)
         bc.load(idx, tk)
       }
@@ -473,14 +435,14 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
           pp
       }
     }
-    def markProgramPoint(lbl: asm.Label): Unit = {
+    def markProgramPoint(lbl: asm.Label) {
       val skip = (lbl == null) || isAtProgramPoint(lbl)
       if (!skip) { mnode visitLabel lbl }
     }
     def isAtProgramPoint(lbl: asm.Label): Boolean = {
       (lastInsn match { case labnode: asm.tree.LabelNode => (labnode.getLabel == lbl); case _ => false } )
     }
-    def lineNumber(tree: Tree): Unit = {
+    def lineNumber(tree: Tree) {
       if (!emitLines || !tree.pos.isDefined) return
       val nr = tree.pos.finalPosition.line
       if (nr != lastEmittedLineNr) {
@@ -496,7 +458,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
     }
 
     // on entering a method
-    def resetMethodBookkeeping(dd: DefDef): Unit = {
+    def resetMethodBookkeeping(dd: DefDef) {
       locals.reset(isStaticMethod = methSymbol.isStaticMember)
       jumpDest = immutable.Map.empty[ /* LabelDef */ Symbol, asm.Label ]
       // populate labelDefsAtOrUnder
@@ -517,7 +479,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
 
     /* ---------------- top-down traversal invoking ASM Tree API along the way ---------------- */
 
-    def gen(tree: Tree): Unit = {
+    def gen(tree: Tree) {
       tree match {
         case EmptyTree => ()
 
@@ -556,7 +518,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
     /*
      * must-single-thread
      */
-    def initJMethod(flags: Int, params: List[Symbol]): Unit = {
+    def initJMethod(flags: Int, params: List[Symbol]) {
 
       val jgensig = getGenericSignature(methSymbol, claszSymbol)
 
@@ -583,7 +545,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
     } // end of method initJMethod
 
 
-    def genDefDef(dd: DefDef): Unit = {
+    def genDefDef(dd: DefDef) {
       // the only method whose implementation is not emitted: getClass()
       if (definitions.isGetClass(dd.symbol)) { return }
       assert(mnode == null, "GenBCode detected nested method.")
@@ -637,7 +599,7 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
 
       if (!isAbstractMethod && !isNative) {
 
-        def emitNormalMethodBody(): Unit = {
+        def emitNormalMethodBody() {
           val veryFirstProgramPoint = currProgramPoint()
           genLoad(rhs, returnType)
 
@@ -688,12 +650,12 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
      *
      *  TODO document, explain interplay with `fabricateStaticInit()`
      */
-    private def appendToStaticCtor(dd: DefDef): Unit = {
+    private def appendToStaticCtor(dd: DefDef) {
 
       def insertBefore(
             location: asm.tree.AbstractInsnNode,
             i0: asm.tree.AbstractInsnNode,
-            i1: asm.tree.AbstractInsnNode): Unit = {
+            i1: asm.tree.AbstractInsnNode) {
         if (i0 != null) {
           mnode.instructions.insertBefore(location, i0.clone(null))
           mnode.instructions.insertBefore(location, i1.clone(null))
@@ -751,14 +713,14 @@ abstract class BCodeSkelBuilder extends BCodeHelpers {
 
     }
 
-    def emitLocalVarScope(sym: Symbol, start: asm.Label, end: asm.Label, force: Boolean = false): Unit = {
+    def emitLocalVarScope(sym: Symbol, start: asm.Label, end: asm.Label, force: Boolean = false) {
       val Local(tk, name, idx, isSynth) = locals(sym)
       if (force || !isSynth) {
         mnode.visitLocalVariable(name, tk.descriptor, null, start, end, idx)
       }
     }
 
-    def genLoad(tree: Tree, expectedType: BType): Unit
+    def genLoad(tree: Tree, expectedType: BType)
 
   } // end of class PlainSkelBuilder
 

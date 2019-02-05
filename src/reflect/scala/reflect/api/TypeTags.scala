@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -307,7 +300,6 @@ trait TypeTags { self: Universe =>
   /* @group TypeTags */
   // This class only exists to silence MIMA complaining about a binary incompatibility.
   // Only the top-level class (api.PredefTypeCreator) should be used.
-  @deprecated("This class only exists to silence MIMA complaining about a binary incompatibility.", since="forever")
   private class PredefTypeCreator[T](copyIn: Universe => Universe#TypeTag[T]) extends TypeCreator {
     def apply[U <: Universe with Singleton](m: scala.reflect.api.Mirror[U]): U # Type = {
       copyIn(m.universe).asInstanceOf[U # TypeTag[T]].tpe

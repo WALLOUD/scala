@@ -1,13 +1,5 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
  */
 
 package scala
@@ -43,17 +35,17 @@ extends AbstractFile {
   override def output = throw new IllegalStateException("directories cannot be written")
 
   /** Does this abstract file denote an existing file? */
-  def create(): Unit = { unsupported() }
+  def create() { unsupported() }
 
   /** Delete the underlying file or directory (recursively). */
-  def delete(): Unit = { unsupported() }
+  def delete() { unsupported() }
 
   /** Returns an abstract file with the given name. It does not
    *  check that it exists.
    */
   def lookupNameUnchecked(name: String, directory: Boolean): AbstractFile = unsupported()
 
-  private[this] val files = mutable.Map.empty[String, AbstractFile]
+  private val files = mutable.Map.empty[String, AbstractFile]
 
   // the toList is so that the directory may continue to be
   // modified while its elements are iterated
@@ -76,7 +68,7 @@ extends AbstractFile {
       dir
     }
 
-  def clear(): Unit = {
+  def clear() {
     files.clear()
   }
 }

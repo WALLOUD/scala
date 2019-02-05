@@ -1,11 +1,11 @@
 class Force {
 	val t1 = new Thread {
-    override def run(): Unit = {
+    override def run() {
       scala.`package`
     }
   }
   val t2 = new Thread {
-    override def run(): Unit = {
+    override def run() {
       scala.Predef
     }
   }
@@ -16,7 +16,7 @@ class Force {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
      new Force()
   }
 }

@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2007-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -87,16 +80,16 @@ trait AnnotationCheckers {
   // Syncnote: Annotation checkers inaccessible to reflection, so no sync in var necessary.
 
   /** The list of annotation checkers that have been registered */
-  private[this] var annotationCheckers: List[AnnotationChecker] = Nil
+  private var annotationCheckers: List[AnnotationChecker] = Nil
 
   /** Register an annotation checker.  Typically these are added by compiler plugins. */
-  def addAnnotationChecker(checker: AnnotationChecker): Unit = {
+  def addAnnotationChecker(checker: AnnotationChecker) {
     if (!(annotationCheckers contains checker))
       annotationCheckers = checker :: annotationCheckers
   }
 
   /** Remove all annotation checkers */
-  def removeAllAnnotationCheckers(): Unit = {
+  def removeAllAnnotationCheckers() {
     annotationCheckers = Nil
   }
 

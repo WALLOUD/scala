@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2002-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala.beans
 
@@ -27,5 +23,4 @@ package scala.beans
  *  use the `scala.beans.BooleanBeanProperty` annotation instead.
  */
 @scala.annotation.meta.field
-@deprecatedInheritance("Scheduled for being final in 2.14", "2.13.0")
 class BeanProperty extends scala.annotation.StaticAnnotation

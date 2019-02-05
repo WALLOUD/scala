@@ -1,4 +1,3 @@
-// scalac: -Xfatal-warnings
 object Test1 {
   val `macro` = ???
 }

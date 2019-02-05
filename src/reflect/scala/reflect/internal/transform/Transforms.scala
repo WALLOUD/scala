@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -26,8 +14,8 @@ trait Transforms { self: SymbolTable =>
    *  in the standard library. Or is it already?
    */
   private class Lazy[T](op: => T) {
-    private[this] var value: T = _
-    private[this] var _isDefined = false
+    private var value: T = _
+    private var _isDefined = false
     def isDefined = _isDefined
     def force: T = {
       if (!isDefined) { value = op; _isDefined = true }
@@ -35,9 +23,9 @@ trait Transforms { self: SymbolTable =>
     }
   }
 
-  private[this] val uncurryLazy     = new Lazy(new { val global: Transforms.this.type = self } with UnCurry)
-  private[this] val erasureLazy     = new Lazy(new { val global: Transforms.this.type = self } with Erasure)
-  private[this] val postErasureLazy = new Lazy(new { val global: Transforms.this.type = self } with PostErasure)
+  private val uncurryLazy     = new Lazy(new { val global: Transforms.this.type = self } with UnCurry)
+  private val erasureLazy     = new Lazy(new { val global: Transforms.this.type = self } with Erasure)
+  private val postErasureLazy = new Lazy(new { val global: Transforms.this.type = self } with PostErasure)
 
   def uncurry = uncurryLazy.force
   def erasure = erasureLazy.force

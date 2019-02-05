@@ -1,7 +1,5 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
-  def foo(a: Int, b: Int, c: Int): Unit = {
+  def foo(a: Int, b: Int, c: Int) {
     class C {
       def a: Any = a // warn
       val b: Any = b // warn
@@ -10,7 +8,7 @@ object Test {
       def d: Any = C.this.d // warn
     }
 
-    def method: Unit = {
+    def method {
       // method local
       def a: Any = a // warn
     }

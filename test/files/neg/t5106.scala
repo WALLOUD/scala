@@ -1,5 +1,5 @@
 class A {
-  def f: Unit = {
+  def f {
     val (n, l): (String, Int) = (4, "")
   }
 }

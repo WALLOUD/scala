@@ -3,7 +3,7 @@ class Baz extends Inter {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     // it's important that the type is Inter so we do not call Baz.foo(I)I directly!
     val baz: Inter = new Baz
     // here we should go through specialized version of foo and thus have zero boxing

@@ -1,6 +1,3 @@
-
-// scalac: -Yrangepos
-//
 trait A
 trait B
 

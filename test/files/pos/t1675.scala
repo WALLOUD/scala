@@ -6,6 +6,6 @@ object Foo extends pack.Bar {
 }
 package pack {
   class Bar {
-    protected def test(s: String*): Unit = {}
+    protected def test(s: String*) {}
   }
 }

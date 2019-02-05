@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 
 object Test extends App {
   def unreachable1(xs:Seq[Char]) = xs match {

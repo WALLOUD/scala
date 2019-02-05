@@ -15,7 +15,7 @@ object Test {
 
   def recurse(set: collection.immutable.Set[Int]): Unit = {
     if (!set.isEmpty) {
-      val x = set.to(LazyList).head
+      val x = set.toStream.head
       recurse(set - x)
     }
   }

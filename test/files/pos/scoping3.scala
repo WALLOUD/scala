@@ -16,6 +16,6 @@ object CI {
     type TreeNode <: ITreeNode with ITreeNodeExp
   }
   abstract class SimpleTreeDisplay extends TreeDisplay { self: TreeDisplayFinal =>
-    def display(): Unit = { this.getRoot().display() }
+    def display() { this.getRoot().display() }
   }
 }

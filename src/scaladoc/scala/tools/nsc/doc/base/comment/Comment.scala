@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2007-2013 LAMP/EPFL
+ * @author  Manohar Jonnalagedda
  */
 
 package scala.tools.nsc
@@ -30,7 +23,7 @@ abstract class Comment {
 
   private def closeHtmlTags(inline: Inline): Inline = {
     val stack = mutable.ListBuffer.empty[HtmlTag]
-    def scan(i: Inline): Unit = {
+    def scan(i: Inline) {
       i match {
         case Chain(list) =>
           list foreach scan

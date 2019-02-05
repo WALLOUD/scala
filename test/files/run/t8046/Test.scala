@@ -2,9 +2,9 @@ import scala.tools.partest._
 
 object Test extends DirectTest {
   override def code = ""
-  override def extraSettings: String = s"-usejavacp -cp ${testOutput.path}"
+  override def extraSettings: String = "-usejavacp"
 
-  override def show(): Unit = {
+  override def show() {
     val c = newCompiler()
     new c.Run
     import c._

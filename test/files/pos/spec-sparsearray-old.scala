@@ -1,6 +1,6 @@
-import scala.reflect.ClassManifest
-import scala.collection.{MapFactory, mutable}
-class SparseArray[@specialized(Int) T:ClassManifest] extends collection.mutable.Map[Int,T] with collection.mutable.MapOps[Int,T,collection.mutable.Map,SparseArray[T]] {
+import scala.collection.mutable.MapLike
+
+class SparseArray[@specialized(Int) T:ClassManifest] extends collection.mutable.Map[Int,T] with collection.mutable.MapLike[Int,T,SparseArray[T]] {
   override def get(x: Int) = {
     val ind = findOffset(x)
     if(ind < 0) None else Some(sys.error("ignore"))
@@ -15,11 +15,10 @@ class SparseArray[@specialized(Int) T:ClassManifest] extends collection.mutable.
     sys.error("impl doesn't matter")
   }
 
-  def addOne(elem: (Int, T)): SparseArray.this.type = ???
-  def iterator: Iterator[(Int, T)] = ???
-  def subtractOne(elem: Int): SparseArray.this.type = ???
-
-  override protected[this] def fromSpecific(coll: IterableOnce[(Int, T)]): SparseArray[T] = ???
-  override protected[this] def newSpecificBuilder: mutable.Builder[(Int, T), SparseArray[T]] = ???
-  override def empty: SparseArray[T] = ???
+  override def apply(i : Int) : T = { sys.error("ignore") }
+  override def update(i : Int, value : T) = sys.error("ignore")
+  override def empty = new SparseArray[T]
+  def -=(ind: Int) = sys.error("ignore")
+  def +=(kv: (Int,T)) = sys.error("ignore")
+  override final def iterator = sys.error("ignore")
 }

@@ -23,11 +23,11 @@ object ImplicitConvAmbiguity2 {
 
   def bFunc[T](e1: N[T]) = {}
 
-  def typeMe2: Unit = {
+  def typeMe2 {
     val x = aFunc(4F)
     bFunc(x)
   }
-  def typeMe1: Unit = {
+  def typeMe1 {
     bFunc(aFunc(4F))
   }
 }

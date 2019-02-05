@@ -10,12 +10,13 @@ import scala.collection.Searching._
 class SearchingTest {
 
   @Test
-  def doesLinearSearchOnLinearSeqs(): Unit = {
+  def doesLinearSearchOnLinearSeqs() {
 
-    class TestSeq[A](list: List[A]) extends Seq[A] {
-      var elementsAccessed = immutable.Set.empty[Int]
+    class TestSeq[A](list: List[A]) extends SeqLike[A, TestSeq[A]] {
+      var elementsAccessed = Set.empty[Int]
 
       protected[this] def newBuilder = ??? // not needed for this test
+      def seq = list
       def iterator = list.iterator
       def length = list.length
       def apply(idx: Int) = { elementsAccessed += idx; list(idx) }
@@ -28,12 +29,13 @@ class SearchingTest {
   }
 
   @Test
-  def doesBinarySearchOnIndexedSeqs(): Unit = {
+  def doesBinarySearchOnIndexedSeqs() {
 
-    class TestIndexedSeq[A](vec: Vector[A]) extends IndexedSeq[A] {
-      var elementsAccessed = immutable.Set.empty[Int]
+    class TestIndexedSeq[A](vec: Vector[A]) extends IndexedSeqLike[A, TestIndexedSeq[A]] {
+      var elementsAccessed = Set.empty[Int]
 
       protected[this] def newBuilder = ??? // not needed for this test
+      def seq = vec
       def length = vec.length
       def apply(idx: Int) = { elementsAccessed += idx; vec(idx) }
     }

@@ -6,6 +6,7 @@ object Test {
   val e: Singleton = true
   val f: Singleton = 'c'
   val g: Singleton = "foo"
+  val h: Singleton = 'foo
 
   implicitly[1 <:< Singleton]
   implicitly[1L <:< Singleton]
@@ -14,4 +15,5 @@ object Test {
   implicitly[true <:< Singleton]
   implicitly['c' <:< Singleton]
   implicitly["foo" <:< Singleton]
+  implicitly['foo <:< Singleton]
 }

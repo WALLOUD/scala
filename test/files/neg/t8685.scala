@@ -1,5 +1,3 @@
-// scalac: -deprecation -Xfatal-warnings
-//
 
 
 @deprecated("class C is depr", since="now")

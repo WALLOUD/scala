@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -24,7 +12,7 @@ trait PrivateWithin {
     propagatePackageBoundary(JavaAccFlags(c), syms: _*)
   def propagatePackageBoundary(m: jMember, syms: Symbol*): Unit =
     propagatePackageBoundary(JavaAccFlags(m), syms: _*)
-  def propagatePackageBoundary(jflags: JavaAccFlags, syms: Symbol*): Unit = {
+  def propagatePackageBoundary(jflags: JavaAccFlags, syms: Symbol*) {
     if (jflags.hasPackageAccessBoundary)
       syms foreach setPackageAccessBoundary
   }

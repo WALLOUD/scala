@@ -8,7 +8,7 @@ object HList {
 
   implicit def hlistOps[L <: HList](l : L) = new {
     def ::[H](h : H) : H :: L = HCons(h, l)
-    def last(implicit last : Last[L]): Unit = {}
+    def last(implicit last : Last[L]) {}
   }
 
   class Last[L <: HList]

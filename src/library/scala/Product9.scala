@@ -1,15 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2002-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 // GENERATED CODE: DO NOT EDIT. See scala.Function0 for timestamp.
 
 package scala
@@ -26,7 +21,7 @@ trait Product9[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9] extends Any with Pro
   /** The arity of this product.
    *  @return 9
    */
-  override def productArity: Int = 9
+  override def productArity = 9
 
   
   /** Returns the n-th projection of this product if 0 <= n < productArity,
@@ -34,11 +29,11 @@ trait Product9[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9] extends Any with Pro
    *
    *  @param n number of the projection to be returned
    *  @return  same as `._(n+1)`, for example `productElement(0)` is the same as `._1`.
-   *  @throws  IndexOutOfBoundsException if the `n` is out of range(n < 0 || n >= 9).
+   *  @throws  IndexOutOfBoundsException
    */
 
   @throws(classOf[IndexOutOfBoundsException])
-  override def productElement(n: Int): Any = n match { 
+  override def productElement(n: Int) = n match { 
     case 0 => _1
     case 1 => _2
     case 2 => _3
@@ -48,7 +43,7 @@ trait Product9[+T1, +T2, +T3, +T4, +T5, +T6, +T7, +T8, +T9] extends Any with Pro
     case 6 => _7
     case 7 => _8
     case 8 => _9
-    case _ => throw new IndexOutOfBoundsException(s"$n is out of bounds (min 0, max 8)")
+    case _ => throw new IndexOutOfBoundsException(n.toString())
  }
 
   /** A projection of element 1 of this Product.

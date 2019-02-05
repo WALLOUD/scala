@@ -7,7 +7,7 @@ object A {
     new B
     20
   }
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     f
   }
 }

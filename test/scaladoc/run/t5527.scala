@@ -50,7 +50,7 @@ object Test extends DirectTest {
           false
       }
 
-      def test5: Unit = {
+      def test5 {
         /** @martin is this right? It shouldn't flag me as scaladoc. */
         if (true) ???
       }
@@ -108,7 +108,7 @@ object Test extends DirectTest {
         /** T */
         type T
         /** f */
-        def f(i: Int): Unit
+        def f(i: Int)
         /** v */
         val v = 1
         /** u */

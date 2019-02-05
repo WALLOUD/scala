@@ -1,6 +1,6 @@
 @ImplementedBy(classOf[Provider])
 trait Service {
-  def someMethod(): Unit
+  def someMethod()
 }
 
 class Provider

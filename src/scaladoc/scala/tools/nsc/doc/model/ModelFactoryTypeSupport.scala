@@ -1,14 +1,4 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/* NSC -- new Scala compiler -- Copyright 2007-2013 LAMP/EPFL */
 
 package scala.tools.nsc
 package doc
@@ -55,13 +45,13 @@ trait ModelFactoryTypeSupport {
           val args = tp.typeArgs
           nameBuffer append '('
           appendTypes0(args.init, ", ")
-          nameBuffer append ") => "
+          nameBuffer append ") ⇒ "
           appendType0(args.last)
         case tp: TypeRef if definitions.isScalaRepeatedParamType(tp) =>
           appendType0(tp.args.head)
           nameBuffer append '*'
         case tp: TypeRef if definitions.isByNameParamType(tp) =>
-          nameBuffer append "=> "
+          nameBuffer append "⇒ "
           appendType0(tp.args.head)
         case tp: TypeRef if definitions.isTupleTypeDirect(tp) =>
           val args = tp.typeArgs
@@ -195,7 +185,7 @@ trait ModelFactoryTypeSupport {
           }
         /* Eval-by-name types */
         case NullaryMethodType(result) =>
-          nameBuffer append "=>"
+          nameBuffer append '⇒'
           appendType0(result)
 
         /* Polymorphic types */
@@ -240,7 +230,7 @@ trait ModelFactoryTypeSupport {
                 nameBuffer append "val "
                 nameBuffer append tpnme.dropSingletonName(sym.name)
                 nameBuffer append ": "
-                appendType0(dropSingletonType(sym.info.upperBound))
+                appendType0(dropSingletonType(sym.info.bounds.hi))
               } else {
                 if (sym.flagString != "") nameBuffer append (sym.flagString + " ")
                 if (sym.keyString != "") nameBuffer append (sym.keyString + " ")

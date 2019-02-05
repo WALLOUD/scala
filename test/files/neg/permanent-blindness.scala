@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 package foo {
   class Bippy
   object Bop {

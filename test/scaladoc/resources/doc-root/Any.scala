@@ -1,38 +1,15 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2002-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 
 /** Class `Any` is the root of the Scala class hierarchy.  Every class in a Scala
  *  execution environment inherits directly or indirectly from this class.
- *
- * Starting with Scala 2.10 it is possible to directly extend `Any` using ''universal traits''.
- * A ''universal trait'' is a trait that extends `Any`, only has `def`s as members, and does no initialization.
- *
- * The main use case for universal traits is to allow basic inheritance of methods for [[scala.AnyVal value classes]].
- * For example,
- *
- * {{{
- *     trait Printable extends Any {
- *       def print(): Unit = println(this)
- *     }
- *     class Wrapper(val underlying: Int) extends AnyVal with Printable
- *
- *     val w = new Wrapper(3)
- *     w.print()
- * }}}
- *
- * See the [[http://docs.scala-lang.org/overviews/core/value-classes.html Value Classes and Universal Traits]] for more
- * details on the interplay of universal traits and value classes.
  */
 abstract class Any {
   /** Compares the receiver object (`this`) with the argument object (`that`) for equivalence.
@@ -42,7 +19,7 @@ abstract class Any {
    *  - It is reflexive: for any instance `x` of type `Any`, `x.equals(x)` should return `true`.
    *  - It is symmetric: for any instances `x` and `y` of type `Any`, `x.equals(y)` should return `true` if and
    *    only if `y.equals(x)` returns `true`.
-   *  - It is transitive: for any instances `x`, `y`, and `z` of type `Any` if `x.equals(y)` returns `true` and
+   *  - It is transitive: for any instances `x`, `y`, and `z` of type `AnyRef` if `x.equals(y)` returns `true` and
    *    `y.equals(z)` returns `true`, then `x.equals(z)` should return `true`.
    *
    *  If you override this method, you should verify that your implementation remains an equivalence relation.
@@ -81,7 +58,7 @@ abstract class Any {
    *
    *  @return a class object corresponding to the runtime type of the receiver.
    */
-  final def getClass(): Class[_] = sys.error("getClass")
+  def getClass(): Class[_]
 
   /** Test two objects for equality.
    *  The expression `x == that` is equivalent to `if (x eq null) that eq null else x.equals(that)`.
@@ -120,7 +97,7 @@ abstract class Any {
    *
    *  @return `true` if the receiver object is an instance of erasure of type `T0`; `false` otherwise.
    */
-  final def isInstanceOf[T0]: Boolean = sys.error("isInstanceOf")
+  def isInstanceOf[T0]: Boolean = sys.error("isInstanceOf")
 
   /** Cast the receiver object to be of type `T0`.
    *
@@ -133,5 +110,5 @@ abstract class Any {
    *  @throws ClassCastException if the receiver object is not an instance of the erasure of type `T0`.
    *  @return the receiver object.
    */
-  final def asInstanceOf[T0]: T0 = sys.error("asInstanceOf")
+  def asInstanceOf[T0]: T0 = sys.error("asInstanceOf")
 }

@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 trait K
 trait L
 

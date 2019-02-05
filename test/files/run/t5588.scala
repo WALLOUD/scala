@@ -7,7 +7,7 @@ object Test {
   }
 
   import MyEnum._
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     println(Foo > Bar)
     println(X > Y)
   }

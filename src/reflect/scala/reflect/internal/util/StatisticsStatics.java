@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.reflect.internal.util;
 
 import scala.reflect.internal.util.AlmostFinalValue;
@@ -21,47 +9,59 @@ import java.lang.invoke.MethodHandle;
  * Its implementation delegates to {@link scala.reflect.internal.util.AlmostFinalValue},
  * which helps performance (see docs to find out why).
  */
-public final class StatisticsStatics {
-  private static final AlmostFinalValue COLD_STATS = new AlmostFinalValue() {
+public final class StatisticsStatics extends BooleanContainer {
+  public StatisticsStatics(boolean value) {
+    super(value);
+  }
+
+  private static final AlmostFinalValue<BooleanContainer> COLD_STATS = new AlmostFinalValue<BooleanContainer>() {
     @Override
-    protected boolean initialValue() {
-        return false;
+    protected BooleanContainer initialValue() {
+        return new FalseContainer();
     }
   };
 
-  private static final AlmostFinalValue HOT_STATS = new AlmostFinalValue() {
+  private static final AlmostFinalValue<BooleanContainer> HOT_STATS = new AlmostFinalValue<BooleanContainer>() {
     @Override
-    protected boolean initialValue() {
-        return false;
+    protected BooleanContainer initialValue() {
+        return new FalseContainer();
     }
   };
 
   private static final MethodHandle COLD_STATS_GETTER = COLD_STATS.createGetter();
   private static final MethodHandle HOT_STATS_GETTER = HOT_STATS.createGetter();
   
-  public static boolean areSomeColdStatsEnabled() throws Throwable {
-    return (boolean) COLD_STATS_GETTER.invokeExact();
+  public static boolean areSomeColdStatsEnabled() {
+    try {
+      return ((BooleanContainer)(Object) COLD_STATS_GETTER.invokeExact()).isEnabledNow();
+    } catch (Throwable e) {
+      throw new AssertionError(e.getMessage(), e);
+    }
   }
 
-  public static boolean areSomeHotStatsEnabled() throws Throwable {
-    return (boolean) HOT_STATS_GETTER.invokeExact();
+  public static boolean areSomeHotStatsEnabled() {
+    try {
+      return ((BooleanContainer)(Object) HOT_STATS_GETTER.invokeExact()).isEnabledNow();
+    } catch (Throwable e) {
+      throw new AssertionError(e.getMessage(), e);
+    }
   }
 
-  public static void enableColdStats() throws Throwable {
+  public static void enableColdStats() {
     if (!areSomeColdStatsEnabled())
-      COLD_STATS.setValue(true);
+      COLD_STATS.setValue(new TrueContainer());
   }
 
   public static void disableColdStats() {
-    COLD_STATS.setValue(false);
+    COLD_STATS.setValue(new FalseContainer());
   }
 
-  public static void enableHotStats() throws Throwable {
+  public static void enableHotStats() {
     if (!areSomeHotStatsEnabled())
-      HOT_STATS.setValue(true);
+      HOT_STATS.setValue(new TrueContainer());
   }
 
   public static void disableHotStats() {
-    HOT_STATS.setValue(false);
+    HOT_STATS.setValue(new FalseContainer());
   }
 }

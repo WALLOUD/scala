@@ -1,26 +1,17 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
 package ast
-
-import scala.reflect.internal.MacroAnnotionTreeInfo
 
 /** This class ...
  *
  *  @author Martin Odersky
  *  @version 1.0
  */
-abstract class TreeInfo extends scala.reflect.internal.TreeInfo with MacroAnnotionTreeInfo {
+abstract class TreeInfo extends scala.reflect.internal.TreeInfo {
   val global: Global
   import global._
   import definitions._
@@ -113,16 +104,5 @@ abstract class TreeInfo extends scala.reflect.internal.TreeInfo with MacroAnnoti
       case tree => tree
     }
     super.firstConstructor(stats map unwrap)
-  }
-
-  object ArrayInstantiation {
-    def unapply(tree: Apply) = tree match {
-      case Apply(Select(New(tpt), name), arg :: Nil) if tpt.tpe != null && tpt.tpe.typeSymbol == definitions.ArrayClass =>
-        tpt.tpe match {
-          case erasure.GenericArray(level, componentType) => Some((level, componentType, arg))
-          case _ => None
-        }
-      case _ => None
-    }
   }
 }

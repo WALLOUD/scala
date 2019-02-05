@@ -35,7 +35,7 @@ package object p4 {
 }
   """
 
-  def show(): Unit = {
+  def show() {
     val global = newCompiler()
     import global._
     def typecheck(code: String): Unit = {
@@ -43,7 +43,7 @@ package object p4 {
       val sourceFile = newSources(code).head
       global.reporter.reset()
       r.compileSources(sourceFile :: Nil)
-      assert(!global.reporter.hasErrors, global.reporter.errorCount)
+      assert(!global.reporter.hasErrors)
     }
 
     def typecheckTwice(code: String): Unit = {

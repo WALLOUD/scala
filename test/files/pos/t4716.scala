@@ -1,6 +1,10 @@
-trait Bug2[@specialized(Int) +A] extends IterableOnce[A] {
-  def ++[B >: A](that: IterableOnce[B]) = {
-    lazy val it = that.iterator
+
+
+
+
+trait Bug2[@specialized(Int) +A] extends TraversableOnce[A] {
+  def ++[B >: A](that: TraversableOnce[B]) = {
+    lazy val it = that.toIterator
     it
   }
 }

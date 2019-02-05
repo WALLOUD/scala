@@ -10,7 +10,7 @@ trait Domain {
 object DomainC extends Domain
 
 object Test {
- def main(args: Array[String]): Unit = {
+ def main(args: Array[String]) {
    object DomainA extends Domain
    object DomainB extends Domain
 

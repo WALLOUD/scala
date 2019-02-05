@@ -12,7 +12,7 @@ object Test {
 
   val s = new StringValue("hei")
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     m(s)
   }
 }

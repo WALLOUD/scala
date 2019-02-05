@@ -1,21 +1,13 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools
 package nsc
 package doc
 
-import reporters.ConsoleReporter
-import scala.reflect.internal.Reporter
+import reporters._
 import scala.reflect.internal.util._
 import DocParser.Parsed
 
@@ -31,7 +23,9 @@ class DocParser(settings: nsc.Settings, reporter: Reporter) extends Global(setti
   locally { new Run() }
 
   override def forScaladoc = true
-  override protected def computeInternalPhases(): Unit = phasesSet += syntaxAnalyzer
+  override protected def computeInternalPhases() {
+    phasesSet += syntaxAnalyzer
+  }
 
   /** Returns a list of `DocParser.Parseds`, which hold the DocDefs found
    *  in the given code along with the surrounding trees.

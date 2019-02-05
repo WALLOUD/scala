@@ -9,5 +9,5 @@ object Impls {
 }
 
 object Macros {
-  def foo: Int = macro Impls.foo
+  def foo = macro Impls.foo
 }

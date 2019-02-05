@@ -1,5 +1,3 @@
-// scalac: -Xsource:2.13
-//
 abstract class Abstract {
   type TypeMember
   val member: TypeMember

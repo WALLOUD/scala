@@ -35,11 +35,11 @@ trait trt01234567890
 }
 
 object Test extends App {
-  def check(c: Class[_]): Unit = {
+  def check(c: Class[_]) {
     checkClassName(c.getName)
   }
-  def checkClassName(name: String): Unit = {
-    val defaultMaxClassFileLength = 240
+  def checkClassName(name: String) {
+    val defaultMaxClassFileLength = 255
     assert((name + ".class").length <= defaultMaxClassFileLength, name)
   }
 

@@ -1,7 +1,7 @@
 trait SpecialException extends Throwable
 
 object Test {
-  def run(): Unit = {
+  def run() {
     try {
       ???
     } catch {

@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
@@ -34,7 +27,7 @@ trait DocComments { self: Global =>
    */
   val docComments = mutable.WeakHashMap[Symbol, DocComment]()
 
-  def clearDocComments(): Unit = {
+  def clearDocComments() {
     cookedDocComments.clear()
     docComments.clear()
     defs.clear()
@@ -61,7 +54,7 @@ trait DocComments { self: Global =>
     else sym.owner.ancestors map (sym overriddenSymbol _) filter (_ != NoSymbol)
   }
 
-  def fillDocComment(sym: Symbol, comment: DocComment): Unit = {
+  def fillDocComment(sym: Symbol, comment: DocComment) {
     docComments(sym) = comment
     comment.defineVariables(sym)
   }
@@ -261,8 +254,8 @@ trait DocComments { self: Global =>
               val sectionTextBounds = extractSectionText(parent, section)
               cleanupSectionText(parent.substring(sectionTextBounds._1, sectionTextBounds._2))
             case None =>
-              reporter.echo(sym.pos, "The \"" + getSectionHeader + "\" annotation of the " + sym +
-                  " comment contains @inheritdoc, but the corresponding section in the parent is not defined.")
+              reporter.info(sym.pos, "The \"" + getSectionHeader + "\" annotation of the " + sym +
+                  " comment contains @inheritdoc, but the corresponding section in the parent is not defined.", force = true)
               "<invalid inheritdoc annotation>"
           }
 
@@ -341,7 +334,7 @@ trait DocComments { self: Global =>
         else {
           val vstart = idx
           idx = skipVariable(str, idx + 1)
-          def replaceWith(repl: String): Unit = {
+          def replaceWith(repl: String) {
             out append str.substring(copied, vstart)
             out append repl
             copied = idx
@@ -407,8 +400,6 @@ trait DocComments { self: Global =>
       val commentStart = skipLineLead(raw, codeEnd + 1) min end
       val comment      = "/** " + raw.substring(commentStart, end) + "*/"
       val commentPos   = subPos(commentStart, end)
-
-      self.currentRun.reporting.deprecationWarning(codePos, "The @usecase tag is deprecated, instead use the @example tag to document the usage of your API", "2.13.0")
 
       UseCase(DocComment(comment, commentPos, codePos), code, codePos)
     }
@@ -490,7 +481,7 @@ trait DocComments { self: Global =>
           case _ =>
             (getSite(partnames.head), partnames.tail)
         }
-        val result = rest.foldLeft(start)(select(_, _, NoType))
+        val result = (start /: rest)(select(_, _, NoType))
         if (result == NoType)
           reporter.warning(comment.codePos, "Could not find the type " + variable + " points to while expanding it " +
                                             "for the usecase signature of " + sym + " in " + site + "." +

@@ -7,7 +7,7 @@ object Msg {
     implicit def fromSeq(s: Seq[T]): TSeq = sys.error("stub")
   }
 
-  def render: Unit = {
+  def render {
     val msgs: TSeq = (List[(Any, Any)]().flatMap {
       case (a, b) => {
         a match {

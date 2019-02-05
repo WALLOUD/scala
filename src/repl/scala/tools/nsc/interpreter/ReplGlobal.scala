@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
@@ -25,11 +18,16 @@ trait ReplGlobal extends Global {
     super.abort(msg)
   }
 
-  override protected[scala] def findMacroClassLoader(): ClassLoader = {
-    val loader = super.findMacroClassLoader
-    analyzer.macroLogVerbose("macro classloader: initializing from a REPL classloader: %s".format(classPath.asURLs))
-    val virtualDirectory = analyzer.globalSettings.outputDirs.getSingleOutput.get
-    new util.AbstractFileClassLoader(virtualDirectory, loader) {}
+  override lazy val analyzer = new {
+    val global: ReplGlobal.this.type = ReplGlobal.this
+  } with Analyzer {
+
+    override protected def findMacroClassLoader(): ClassLoader = {
+      val loader = super.findMacroClassLoader
+      macroLogVerbose("macro classloader: initializing from a REPL classloader: %s".format(global.classPath.asURLs))
+      val virtualDirectory = globalSettings.outputDirs.getSingleOutput.get
+      new util.AbstractFileClassLoader(virtualDirectory, loader) {}
+    }
   }
 
   override def optimizerClassPath(base: ClassPath): ClassPath = {
@@ -37,7 +35,7 @@ trait ReplGlobal extends Global {
       case None => base
       case Some(out) =>
         // Make bytecode of previous lines available to the inliner
-        val replOutClasspath = ClassPathFactory.newClassPath(settings.outputDirs.getSingleOutput.get, settings, closeableRegistry)
+        val replOutClasspath = ClassPathFactory.newClassPath(settings.outputDirs.getSingleOutput.get, settings)
         AggregateClassPath.createAggregate(platform.classPath, replOutClasspath)
     }
   }

@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings -unchecked
-//
 import language.existentials
 
 object Test {

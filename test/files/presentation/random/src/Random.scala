@@ -14,7 +14,7 @@ import java.util.Random
  */
 object randomclient {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val filter/*?*/ = try {
       Integer.parseInt(args(0)/*?*/) match {
         case 1 => x: Int => x % 2 != 0

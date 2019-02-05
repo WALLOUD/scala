@@ -73,7 +73,7 @@ object Test extends InteractiveTest {
     }
   }
 
-  override def runDefaultTests(): Unit = {
+  override def runDefaultTests() {
     import compiler._
     def findSource(name: String) = sourceFiles.find(_.file.name == name).get
 

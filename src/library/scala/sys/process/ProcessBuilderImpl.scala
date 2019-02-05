@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package sys
@@ -17,9 +13,8 @@ package process
 import processInternal._
 import Process._
 import java.io.{ FileInputStream, FileOutputStream }
-import BasicIO.{ LazilyListed, Streamed, Uncloseable }
+import BasicIO.{ Uncloseable, Streamed }
 import Uncloseable.protect
-import scala.util.control.NonFatal
 
 private[process] trait ProcessBuilderImpl {
   self: ProcessBuilder.type =>
@@ -65,7 +60,7 @@ private[process] trait ProcessBuilderImpl {
           ok = true
         } finally success.put(ok)
       }
-      val t = Spawn("ThreadProcess", io.daemonizeThreads)(go())
+      val t = Spawn(go(), io.daemonizeThreads)
       new ThreadProcess(t, success)
     }
   }
@@ -73,16 +68,15 @@ private[process] trait ProcessBuilderImpl {
   /** Represents a simple command without any redirection or combination. */
   private[process] class Simple(p: JProcessBuilder) extends AbstractBuilder {
     override def run(io: ProcessIO): Process = {
+      val process = p.start() // start the external process
       import io._
 
-      val process = p.start() // start the external process
-
       // spawn threads that process the input, output, and error streams using the functions defined in `io`
-      val inThread  = Spawn("Simple-input", daemon = true)(writeInput(process.getOutputStream))
-      val outThread = Spawn("Simple-output", daemonizeThreads)(processOutput(process.getInputStream))
+      val inThread  = Spawn(writeInput(process.getOutputStream), daemon = true)
+      val outThread = Spawn(processOutput(process.getInputStream), daemonizeThreads)
       val errorThread =
         if (p.redirectErrorStream) Nil
-        else List(Spawn("Simple-error", daemonizeThreads)(processError(process.getErrorStream)))
+        else List(Spawn(processError(process.getErrorStream), daemonizeThreads))
 
       new SimpleProcess(process, inThread, outThread :: errorThread)
     }
@@ -94,7 +88,7 @@ private[process] trait ProcessBuilderImpl {
     protected def toSource = this
     protected def toSink = this
 
-    private[this] val defaultStreamCapacity = 4096
+    private val defaultStreamCapacity = 4096
 
     def #|(other: ProcessBuilder): ProcessBuilder  = {
       require(other.canPipeTo, "Piping to multiple processes is not supported.")
@@ -113,15 +107,6 @@ private[process] trait ProcessBuilderImpl {
     def !!(log: ProcessLogger)  = slurp(Some(log), withIn = false)
     def !!<                     = slurp(None, withIn = true)
     def !!<(log: ProcessLogger) = slurp(Some(log), withIn = true)
-
-    def lazyLines: LazyList[String]                       = lazyLines(withInput = false, nonZeroException = true, None, defaultStreamCapacity)
-    def lazyLines(log: ProcessLogger): LazyList[String]   = lazyLines(withInput = false, nonZeroException = true, Some(log), defaultStreamCapacity)
-    def lazyLines_! : LazyList[String]                    = lazyLines(withInput = false, nonZeroException = false, None, defaultStreamCapacity)
-    def lazyLines_!(log: ProcessLogger): LazyList[String] = lazyLines(withInput = false, nonZeroException = false, Some(log), defaultStreamCapacity)
-    def lazyLines(capacity: Integer): LazyList[String]                       = lazyLines(withInput = false, nonZeroException = true, None, capacity)
-    def lazyLines(log: ProcessLogger, capacity: Integer): LazyList[String]   = lazyLines(withInput = false, nonZeroException = true, Some(log), capacity)
-    def lazyLines_!(capacity: Integer) : LazyList[String]                    = lazyLines(withInput = false, nonZeroException = false, None, capacity)
-    def lazyLines_!(log: ProcessLogger, capacity: Integer): LazyList[String] = lazyLines(withInput = false, nonZeroException = false, Some(log), capacity)
 
     def lineStream: Stream[String]                       = lineStream(withInput = false, nonZeroException = true, None, defaultStreamCapacity)
     def lineStream(log: ProcessLogger): Stream[String]   = lineStream(withInput = false, nonZeroException = true, Some(log), defaultStreamCapacity)
@@ -155,26 +140,6 @@ private[process] trait ProcessBuilderImpl {
       else scala.sys.error("Nonzero exit value: " + code)
     }
 
-    private[this] def lazyLines(
-      withInput: Boolean,
-      nonZeroException: Boolean,
-      log: Option[ProcessLogger],
-      capacity: Integer
-    ): LazyList[String] = {
-      val lazilyListed = LazilyListed[String](nonZeroException, capacity)
-      val process      = run(BasicIO(withInput, lazilyListed.process, log))
-
-      Spawn("LazyLines") {
-        lazilyListed.done {
-          try process.exitValue()
-          catch {
-            case NonFatal(_) => -2
-          }
-        }
-      }
-      lazilyListed.lazyList
-    }
-
     private[this] def lineStream(
       withInput: Boolean,
       nonZeroException: Boolean,
@@ -184,7 +149,7 @@ private[process] trait ProcessBuilderImpl {
       val streamed = Streamed[String](nonZeroException, capacity)
       val process  = run(BasicIO(withInput, streamed.process, log))
 
-      Spawn("LineStream")(streamed done process.exitValue())
+      Spawn(streamed done process.exitValue())
       streamed.stream()
     }
 

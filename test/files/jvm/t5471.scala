@@ -1,7 +1,7 @@
 
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     import scala.math.Numeric
     import scala.math.Numeric.Implicits._
 

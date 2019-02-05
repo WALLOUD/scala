@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
@@ -72,7 +65,7 @@ abstract class CharArrayReader extends CharArrayReaderData { self =>
    *  This is for use in multi-line strings, so there are no
    *  "potential line ends" here.
    */
-  final def nextRawChar(): Unit = {
+  final def nextRawChar() {
     if (charOffset >= buf.length) {
       ch = SU
     } else {
@@ -128,7 +121,7 @@ abstract class CharArrayReader extends CharArrayReaderData { self =>
       }
 
   /** Handle line ends */
-  private def potentialLineEnd(): Unit = {
+  private def potentialLineEnd() {
     if (ch == LF || ch == FF) {
       lastLineStartOffset = lineStartOffset
       lineStartOffset = charOffset

@@ -1,5 +1,5 @@
 class A {
-    def whatever(): Unit = {
+    def whatever() {
         lazy val a = 1
         lazy val b = try { 2 } catch { case _: Throwable => 0 }
         a
@@ -9,7 +9,7 @@ class A {
 }
 
 object Test {
-    def main(a: Array[String]): Unit = {
+    def main(a: Array[String]) {
         val a = new A
         a.whatever
     }

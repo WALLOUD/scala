@@ -1,5 +1,5 @@
 class A{
-  def b(c: => Unit): Unit ={}
+  def b(c: => Unit){}
   b{
     e("f")
     new G()(){}

@@ -11,12 +11,12 @@ object Bind {
 
 object works {
 	// this works fine:
-	def runbind(implicit bind: Bind[MySerializable]): Unit = {}
+	def runbind(implicit bind: Bind[MySerializable]) {}
 	runbind
 }
 
 object breaks {
-	def runbind(implicit bind: Bind[ArrayList]): Unit = {}
+	def runbind(implicit bind: Bind[ArrayList]) {}
         runbind
 	/*java.lang.AssertionError: assertion failed: java.io.Serializable
 		at scala.Predef$.assert(Predef.scala:107)

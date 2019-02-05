@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -33,7 +26,7 @@ trait ExistentialsAndSkolems {
     class Deskolemizer extends LazyType {
       override val typeParams = tparams
       val typeSkolems  = typeParams map (_.newTypeSkolem setInfo this)
-      override def complete(sym: Symbol): Unit = {
+      override def complete(sym: Symbol) {
         // The info of a skolem is the skolemized info of the
         // actual type parameter of the skolem
         sym setInfo sym.deSkolemize.info.substSym(typeParams, typeSkolems)
@@ -56,9 +49,9 @@ trait ExistentialsAndSkolems {
    */
   private def existentialBoundsExcludingHidden(hidden: List[Symbol]): Map[Symbol, Type] = {
     def safeBound(t: Type): Type =
-      if (hidden contains t.typeSymbol) safeBound(t.typeSymbol.existentialBound.upperBound) else t
+      if (hidden contains t.typeSymbol) safeBound(t.typeSymbol.existentialBound.bounds.hi) else t
 
-    def hiBound(s: Symbol): Type = safeBound(s.existentialBound.upperBound).resultType match {
+    def hiBound(s: Symbol): Type = safeBound(s.existentialBound.bounds.hi) match {
       case tp @ RefinedType(parents, decls) =>
         val parents1 = parents mapConserve safeBound
         if (parents eq parents1) tp
@@ -69,7 +62,7 @@ trait ExistentialsAndSkolems {
     // Hanging onto lower bound in case anything interesting
     // happens with it.
     mapFrom(hidden)(s => s.existentialBound match {
-      case GenPolyType(tparams, TypeBounds(lo, _)) => genPolyType(tparams, TypeBounds(lo, hiBound(s)))
+      case GenPolyType(tparams, TypeBounds(lo, _)) => GenPolyType(tparams, TypeBounds(lo, hiBound(s)))
       case _ => hiBound(s)
     })
   }
@@ -121,5 +114,5 @@ trait ExistentialsAndSkolems {
    */
   final def packSymbols(hidden: List[Symbol], tp: Type, rawOwner: Symbol = NoSymbol): Type =
     if (hidden.isEmpty) tp
-    else existentialTransform(hidden, tp, rawOwner)(existentialAbstraction(_, _))
+    else existentialTransform(hidden, tp, rawOwner)(existentialAbstraction)
 }

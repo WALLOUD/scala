@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala
@@ -15,15 +8,13 @@ package reflect
 package io
 
 import java.net.URL
-import java.io.{ByteArrayInputStream, FilterInputStream, IOException, InputStream}
-import java.io.{File => JFile}
-import java.util.zip.{ZipEntry, ZipFile, ZipInputStream}
+import java.io.{ IOException, InputStream, ByteArrayInputStream, FilterInputStream }
+import java.io.{ File => JFile }
+import java.util.zip.{ ZipEntry, ZipFile, ZipInputStream }
 import java.util.jar.Manifest
-
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.annotation.tailrec
-import scala.reflect.internal.JDK9Reflectors
 
 /** An abstraction for zip files and streams.  Everything is written the way
  *  it is for performance: we come through here a lot on every run.  Be careful
@@ -69,27 +60,11 @@ object ZipArchive {
       if (front) path.substring(0, idx + 1)
       else path.substring(idx + 1)
   }
-  def pathToDotted(path: String): String = {
-    if (path == "/") ""
-    else {
-      val slashEnd = path.endsWith("/")
-      val len = path.length - (if (slashEnd) 1 else 0)
-      val result = new Array[Char](len)
-      var i = 0
-      while (i < len) {
-        val char = path.charAt(i)
-        result(i) = if (char == '/') '.' else char
-        i += 1
-      }
-      new String(result)
-    }
-  }
 }
 import ZipArchive._
 /** ''Note:  This library is considered experimental and should not be used unless you know what you are doing.'' */
-abstract class ZipArchive(override val file: JFile, release: Option[String]) extends AbstractFile with Equals {
+abstract class ZipArchive(override val file: JFile) extends AbstractFile with Equals {
   self =>
-  def this(file: JFile) = this(file, None)
 
   override lazy val canonicalPath = super.canonicalPath
 
@@ -123,7 +98,7 @@ abstract class ZipArchive(override val file: JFile, release: Option[String]) ext
     }
   }
 
-  private def ensureDir(dirs: mutable.Map[String, DirEntry], path: String, zipEntry: ZipEntry): DirEntry = {
+  private def ensureDir(dirs: mutable.Map[String, DirEntry], path: String, zipEntry: ZipEntry): DirEntry =
     //OPT inlined from getOrElseUpdate; saves ~50K closures on test run.
     // was:
     // dirs.getOrElseUpdate(path, {
@@ -132,35 +107,25 @@ abstract class ZipArchive(override val file: JFile, release: Option[String]) ext
     //   parent.entries(baseName(path)) = dir
     //   dir
     // })
-    val dotted = pathToDotted(path)
-    dirs get dotted match {
+    dirs get path match {
       case Some(v) => v
       case None =>
         val parent = ensureDir(dirs, dirName(path), null)
-        val dir = new DirEntry(path)
+        val dir    = new DirEntry(path)
         parent.entries(baseName(path)) = dir
-        dirs(dotted) = dir
+        dirs(path) = dir
         dir
     }
-  }
 
   protected def getDir(dirs: mutable.Map[String, DirEntry], entry: ZipEntry): DirEntry = {
     if (entry.isDirectory) ensureDir(dirs, entry.getName, entry)
     else ensureDir(dirs, dirName(entry.getName), null)
   }
-  def close(): Unit
 }
 /** ''Note:  This library is considered experimental and should not be used unless you know what you are doing.'' */
-final class FileZipArchive(file: JFile, release: Option[String]) extends ZipArchive(file, release) {
-  def this(file: JFile) = this(file, None)
+final class FileZipArchive(file: JFile) extends ZipArchive(file) {
   private[this] def openZipFile(): ZipFile = try {
-    release match {
-      case Some(r) if file.getName.endsWith(".jar") =>
-        val releaseVersion = JDK9Reflectors.runtimeVersionParse(r)
-        JDK9Reflectors.newJarFile(file, true, ZipFile.OPEN_READ, releaseVersion)
-      case _ =>
-        new ZipFile(file)
-    }
+    new ZipFile(file)
   } catch {
     case ioe: IOException => throw new IOException("Error accessing " + file.getPath, ioe)
   }
@@ -173,7 +138,7 @@ final class FileZipArchive(file: JFile, release: Option[String]) extends ZipArch
     override def lastModified: Long = time // could be stale
     override def input: InputStream = {
       val zipFile  = openZipFile()
-      val entry    = zipFile.getEntry(name) // with `-release`, returns the correct version under META-INF/versions
+      val entry    = zipFile.getEntry(name)
       val delegate = zipFile.getInputStream(entry)
       new FilterInputStream(delegate) {
         override def close(): Unit = { zipFile.close() }
@@ -188,57 +153,42 @@ final class FileZipArchive(file: JFile, release: Option[String]) extends ZipArch
   // faster than LazyEntry.
   private[this] class LeakyEntry(
     zipFile: ZipFile,
-    zipEntry: ZipEntry,
-    name: String
-  ) extends Entry(name) {
+    zipEntry: ZipEntry
+  ) extends Entry(zipEntry.getName) {
     override def lastModified: Long = zipEntry.getTime
     override def input: InputStream = zipFile.getInputStream(zipEntry)
     override def sizeOption: Option[Int] = Some(zipEntry.getSize.toInt)
   }
 
-  lazy val (root, allDirsByDottedName) = {
+  lazy val (root, allDirs) = {
     val root = new DirEntry("/")
-    val dirs = mutable.HashMap[String, DirEntry]("" -> root)
+    val dirs = mutable.HashMap[String, DirEntry]("/" -> root)
     val zipFile = openZipFile()
     val enum    = zipFile.entries()
 
     try {
       while (enum.hasMoreElements) {
         val zipEntry = enum.nextElement
-        if (!zipEntry.getName.startsWith("META-INF/versions/")) {
-          val zipEntryVersioned = if (release.isDefined) {
-            // JARFile will return the entry for the corresponding release-dependent version here under META-INF/versions
-            zipFile.getEntry(zipEntry.getName)
-          } else zipEntry
-          if (!zipEntry.isDirectory) {
-            val dir = getDir(dirs, zipEntry)
-            val f =
-              if (ZipArchive.closeZipFile)
-                new LazyEntry(
-                  zipEntry.getName,
-                  zipEntry.getTime,
-                  zipEntry.getSize.toInt)
-              else
-                new LeakyEntry(zipFile, zipEntryVersioned, zipEntry.getName)
+        val dir = getDir(dirs, zipEntry)
+        if (zipEntry.isDirectory) dir
+        else {
+          val f =
+            if (ZipArchive.closeZipFile)
+              new LazyEntry(
+                zipEntry.getName(),
+                zipEntry.getTime(),
+                zipEntry.getSize().toInt
+              )
+            else
+              new LeakyEntry(zipFile, zipEntry)
 
-            dir.entries(f.name) = f
-          }
+          dir.entries(f.name) = f
         }
       }
     } finally {
       if (ZipArchive.closeZipFile) zipFile.close()
-      else closeables ::= zipFile
     }
     (root, dirs)
-  }
-
-  @deprecated("Use allDirsByDottedName after converting keys from relative paths to dotted names", "2.13")
-  lazy val allDirs: mutable.HashMap[String, DirEntry] = {
-    def dottedToPath(dotted: String): String = {
-      val sb = new java.lang.StringBuilder(dotted.length)
-      dotted.replace('.', '/') + "/"
-    }
-    allDirsByDottedName.map { case (k, v) => (dottedToPath(k), v) }
   }
 
   def iterator: Iterator[Entry] = root.iterator
@@ -255,20 +205,15 @@ final class FileZipArchive(file: JFile, release: Option[String]) extends ZipArch
     case x: FileZipArchive => file.getAbsoluteFile == x.file.getAbsoluteFile
     case _                 => false
   }
-  private[this] var closeables: List[java.io.Closeable] = Nil
-  override def close(): Unit = {
-    closeables.foreach(_.close)
-  }
 }
 /** ''Note:  This library is considered experimental and should not be used unless you know what you are doing.'' */
 final class URLZipArchive(val url: URL) extends ZipArchive(null) {
   def iterator: Iterator[Entry] = {
     val root     = new DirEntry("/")
-    val dirs     = mutable.HashMap[String, DirEntry]("" -> root)
+    val dirs     = mutable.HashMap[String, DirEntry]("/" -> root)
     val in       = new ZipInputStream(new ByteArrayInputStream(Streamable.bytes(input)))
-    closeables ::= in
 
-    @tailrec def loop(): Unit = {
+    @tailrec def loop() {
       val zipEntry = in.getNextEntry()
       class EmptyFileEntry() extends Entry(zipEntry.getName) {
         override def toByteArray: Array[Byte] = null
@@ -280,7 +225,7 @@ final class URLZipArchive(val url: URL) extends ZipArchive(null) {
           val arr    = if (len == 0) Array.emptyByteArray else new Array[Byte](len)
           var offset = 0
 
-          def loop(): Unit = {
+          def loop() {
             if (offset < len) {
               val read = in.read(arr, offset, len - offset)
               if (read >= 0) {
@@ -328,19 +273,14 @@ final class URLZipArchive(val url: URL) extends ZipArchive(null) {
     case x: URLZipArchive => url == x.url
     case _                => false
   }
-  private[this] var closeables: List[java.io.Closeable] = Nil
-  def close(): Unit = {
-    closeables.foreach(_.close())
-  }
 }
 
 final class ManifestResources(val url: URL) extends ZipArchive(null) {
   def iterator = {
     val root     = new DirEntry("/")
-    val dirs     = mutable.HashMap[String, DirEntry]("" -> root)
+    val dirs     = mutable.HashMap[String, DirEntry]("/" -> root)
     val manifest = new Manifest(input)
-    closeables ::= input
-    val iter     = manifest.getEntries().keySet().iterator.asScala.filter(_.endsWith(".class")).map(new ZipEntry(_))
+    val iter     = manifest.getEntries().keySet().iterator().asScala.filter(_.endsWith(".class")).map(new ZipEntry(_))
 
     for (zipEntry <- iter) {
       val dir = getDir(dirs, zipEntry)
@@ -390,9 +330,5 @@ final class ManifestResources(val url: URL) extends ZipArchive(null) {
         in = null
       }
     }
-  }
-  private[this] var closeables: List[java.io.Closeable] = Nil
-  override def close(): Unit = {
-    closeables.foreach(_.close())
   }
 }

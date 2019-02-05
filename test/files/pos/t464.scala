@@ -1,5 +1,5 @@
 class A {
-  protected[this] def f(): Unit = {}
+  protected[this] def f() {}
 }
 class B extends A {
   f()

@@ -1,5 +1,3 @@
-// scalac: -deprecation -Xfatal-warnings
-//
 
 trait T
 

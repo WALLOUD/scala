@@ -10,7 +10,7 @@ class Casey1(val a: Int) {
 object Casey1 { def unapply(a: Casey1) = a }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val c @ Casey1(x) = new Casey1(0)
     assert(x == c.get)
   }

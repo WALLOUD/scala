@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 
@@ -20,6 +16,7 @@ import scala.collection.JavaConverters._
  *  world outside of it.
  *
  *  @author Paul Phillips
+ *  @version 2.9
  *  @since   2.9
  */
 package object sys {
@@ -64,7 +61,7 @@ package object sys {
    *
    *  @return   a Map containing the system environment variables.
    */
-  def env: immutable.Map[String, String] = immutable.Map.from(System.getenv().asScala)
+  def env: immutable.Map[String, String] = immutable.Map(System.getenv().asScala.toSeq: _*)
 
   /** Register a shutdown hook to be run when the VM exits.
    *  The hook is automatically registered: the returned value can be ignored,
@@ -88,6 +85,6 @@ package object sys {
     val tarray = new Array[Thread](num)
     val got    = Thread.enumerate(tarray)
 
-    immutable.ArraySeq.unsafeWrapArray(tarray).take(got)
+    tarray take got
   }
 }

@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 import java.lang.Thread.State
 import java.lang.Thread.State._
 

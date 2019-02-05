@@ -1,5 +1,3 @@
-// scalac: -Xlint:adapted-args -Xfatal-warnings -deprecation
-//
 object Test {
   val x1 = new J
   val x2 = new J()

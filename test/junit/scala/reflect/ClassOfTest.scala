@@ -71,7 +71,7 @@ class ClassOfTest extends RunTesting {
   @Test
   def t9702(): Unit = {
     val code =
-      """import scala.tools.testing.Resource
+      """import javax.annotation.Resource
         |import scala.reflect.ClassOfTest.VC
         |class C {
         |  type aList[K] = List[K]

@@ -1,7 +1,7 @@
 object Test extends App {
   t
 
-  def t: Unit = {
+  def t {
     val c1 = C1()(1)
     println(c1.copy()(2))
 

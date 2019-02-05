@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -68,9 +56,9 @@ trait Erasure {
   /** Arrays despite their finality may turn up as refined type parents,
    *  e.g. with "tagged types" like Array[Int] with T.
    */
-  def unboundedGenericArrayLevel(tp: Type): Int = tp match {
+  protected def unboundedGenericArrayLevel(tp: Type): Int = tp match {
     case GenericArray(level, core) if !(core <:< AnyRefTpe) => level
-    case RefinedType(ps, _) if ps.nonEmpty                  => logResult(s"Unbounded generic level for $tp is")(unboundedGenericArrayLevel(intersectionDominator(ps)))
+    case RefinedType(ps, _) if ps.nonEmpty                  => logResult(s"Unbounded generic level for $tp is")((ps map unboundedGenericArrayLevel).max)
     case _                                                  => 0
   }
 
@@ -127,18 +115,19 @@ trait Erasure {
       case FoldableConstantType(ct) =>
         // erase classOf[List[_]] to classOf[List]. special case for classOf[Unit], avoid erasing to classOf[BoxedUnit].
         if (ct.tag == ClazzTag && ct.typeValue.typeSymbol != UnitClass) ConstantType(Constant(apply(ct.typeValue)))
+        else if(ct.isSymbol) SymbolTpe
         else tp
       case st: ThisType if st.sym.isPackageClass =>
         tp
       case st: SubType =>
         apply(st.supertype)
       case tref @ TypeRef(pre, sym, args) =>
-        if (sym eq ArrayClass)
+        if (sym == ArrayClass)
           if (unboundedGenericArrayLevel(tp) == 1) ObjectTpe
           else if (args.head.typeSymbol.isBottomClass)  arrayType(ObjectTpe)
           else typeRef(apply(pre), sym, args map applyInArray)
-        else if ((sym eq AnyClass) || (sym eq AnyValClass) || (sym eq SingletonClass)) ObjectTpe
-        else if (sym eq UnitClass) BoxedUnitTpe
+        else if (sym == AnyClass || sym == AnyValClass || sym == SingletonClass) ObjectTpe
+        else if (sym == UnitClass) BoxedUnitTpe
         else if (sym.isRefinementClass) apply(mergeParents(tp.parents))
         else if (sym.isDerivedValueClass) eraseDerivedValueClassRef(tref)
         else if (sym.isClass) eraseNormalClassRef(tref)
@@ -160,48 +149,31 @@ trait Erasure {
         apply(atp)
       case ClassInfoType(parents, decls, clazz) =>
         val newParents =
-          if (parents.isEmpty || (clazz eq ObjectClass) || isPrimitiveValueClass(clazz)) Nil
-          else if (clazz eq ArrayClass) ObjectTpe :: Nil
+          if (parents.isEmpty || clazz == ObjectClass || isPrimitiveValueClass(clazz)) Nil
+          else if (clazz == ArrayClass) ObjectTpe :: Nil
           else {
             val erasedParents = parents mapConserve this
 
             // drop first parent for traits -- it has been normalized to a class by now,
             // but we should drop that in bytecode
             if (clazz.hasFlag(Flags.TRAIT) && !clazz.hasFlag(Flags.JAVA))
-              ObjectTpe :: erasedParents.tail.filter(_.typeSymbol ne ObjectClass)
+              ObjectTpe :: erasedParents.tail.filter(_.typeSymbol != ObjectClass)
             else erasedParents
           }
         if (newParents eq parents) tp
         else ClassInfoType(newParents, decls, clazz)
 
-      // A BoundedWildcardType, e.g., can happen while this map is being used before erasure (e.g. when reasoning about sam types)
+      // can happen while this map is being used before erasure (e.g. when reasoning about sam types)
       // the regular mapOver will cause a class cast exception because TypeBounds don't erase to TypeBounds
-      case pt: ProtoType => pt // skip
+      case _: BoundedWildcardType => tp // skip
 
       case _ =>
         tp.mapOver(this)
     }
 
-    /* scala/bug#10551, scala/bug#10646:
-     *
-     * There are a few contexts in which it's important to erase types referencing
-     * derived value classes to the value class itself, not the underlying. As
-     * of right now, those are:
-     *   - inside of `classOf`
-     *   - the element type of an `ArrayValue`
-     * In those cases, the value class needs to be detected and erased using
-     * `javaErasure`, which treats refs to value classes the same as any other
-     * `TypeRef`. This used to be done by matching on `tr@TypeRef(_,sym,_)`, and
-     * checking whether `sym.isDerivedValueClass`, but there are more types with
-     * `typeSymbol.isDerivedValueClass` than just `TypeRef`s (`ExistentialType`
-     * is one of the easiest to bump into, e.g. `classOf[VC[_]]`).
-     *
-     * tl;dr if you're trying to erase a value class ref to the value class itself
-     * and not going through this method, you're inviting trouble into your life.
-     */
-    def applyInArray(tp: Type): Type = {
-      if (tp.typeSymbol.isDerivedValueClass) javaErasure(tp)
-      else apply(tp)
+    def applyInArray(tp: Type): Type = tp match {
+      case tref @ TypeRef(_, sym, _) if sym.isDerivedValueClass => eraseNormalClassRef(tref)
+      case _ => apply(tp)
     }
   }
 
@@ -325,7 +297,7 @@ trait Erasure {
   }
 
   object boxingErasure extends ScalaErasureMap {
-    private[this] var boxPrimitives = true
+    private var boxPrimitives = true
 
     override def applyInArray(tp: Type): Type = {
       val saved = boxPrimitives

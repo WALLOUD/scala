@@ -10,7 +10,7 @@ object EvidenceTest {
   trait A[T] { implicit val e: E[T] = null }
   class B[T : E] extends A[T] { override val e = null }
 
-  def f[T]: Unit = {
+  def f[T] {
     implicit val e: E[T] = null
     new B[T]{}
   }

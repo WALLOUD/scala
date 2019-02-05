@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 class A {
   def f1(x: Int) = x match {
     case _ if false => x // unreachable

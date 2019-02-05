@@ -1,13 +1,5 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2017 LAMP/EPFL and Lightbend, Inc
  */
 
 package scala.tools.nsc.interpreter.shell
@@ -26,6 +18,7 @@ object ShellConfig {
   import scala.tools.nsc.Properties
 
   val EDITOR = Properties.envOrNone("EDITOR")
+  val isEmacsShell = Properties.isEmacsShell
   val InterruptedString = Properties.shellInterruptedString
 
   def apply(settings: Settings) = settings match {
@@ -35,7 +28,7 @@ object ShellConfig {
       val batchText: String = if (settings.execute.isSetByUser) settings.execute.value else ""
       val batchMode: Boolean = batchText.nonEmpty
       val doCompletion: Boolean = !(settings.noCompletion || batchMode)
-      val haveInteractiveConsole: Boolean = !settings.Xnojline
+      val haveInteractiveConsole: Boolean = !(settings.Xnojline || Properties.isEmacsShell)
     }
     case _ => new ShellConfig {
       val filesToPaste: List[String] = Nil
@@ -43,7 +36,7 @@ object ShellConfig {
       val batchText: String = ""
       val batchMode: Boolean = false
       val doCompletion: Boolean = !settings.noCompletion
-      val haveInteractiveConsole: Boolean = !settings.Xnojline
+      val haveInteractiveConsole: Boolean = !(settings.Xnojline || isEmacsShell)
     }
   }
 }
@@ -93,13 +86,7 @@ trait ShellConfig {
 
   // Prompt for continued input, will be right-adjusted to width of the primary prompt
   val continueString = Prop[String]("scala.repl.continue").option getOrElse "| "
-
-  // What to display at REPL startup.
-  val welcomeString  = Prop[String]("scala.repl.welcome").option match {
-    case Some("banner") => shellBannerString
-    case Some(text)     => text
-    case _              => shellWelcomeString
-  }
+  val welcomeString  = Prop[String]("scala.repl.welcome").option getOrElse shellWelcomeString
 
   val pasteDelimiter = Prop[String]("scala.repl.here")
 

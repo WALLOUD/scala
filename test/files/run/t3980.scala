@@ -1,10 +1,10 @@
 object A {
-  def run1: Unit = {
+  def run1 {
     lazy val x: Unit = {(); println("once")}
     x
     x
   }
-  def run2: Unit = {
+  def run2 {
 	lazy val y: Int = 2
 	println(y)
 	println(y)

@@ -1,5 +1,3 @@
-// scalac: -Xcheckinit
-//
 import scala.tools.nsc._
 
 import scala.language.{ reflectiveCalls }
@@ -11,7 +9,7 @@ object Test {
     }
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     new DryRun().compiler.test1
   }
 }

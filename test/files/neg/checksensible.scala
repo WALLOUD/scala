@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings -deprecation
-//
 final class Bip { def <=(other: Bop) = true }
 final class Bop { }
 object Bep { }
@@ -34,7 +32,7 @@ class EqEqValTest {
   "abc" == 1        // warns because the lub of String and Int is Any
   Some(1) == 1      // as above
 
-  true == new java.lang.Boolean(true) // none of these should warn except for deprecated API
+  true == new java.lang.Boolean(true) // none of these should warn
   new java.lang.Boolean(true) == true
 
   new AnyRef == 1

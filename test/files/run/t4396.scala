@@ -1,6 +1,6 @@
 // #43896
 trait M extends DelayedInit {
-    def delayedInit(body : => Unit): Unit = {
+    def delayedInit(body : => Unit) {
         println("hallo")
         body
         println("bye")
@@ -16,7 +16,7 @@ class C(init : Int) extends M {
 
 // #4380
 object Main {
-  def main(argv: Array[String]): Unit = {
+  def main(argv: Array[String]) {
     class Bip {
       class Foo { override def toString() = "foo" }
       object Main extends App {

@@ -1,3 +1,4 @@
 // test/Test2.scala
-import scala.collection.mutable._
-trait Test2 extends Stack
+package test;
+import scala.collection.mutable._;
+trait Test2 extends LinkedList;

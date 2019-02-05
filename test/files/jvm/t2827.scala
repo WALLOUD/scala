@@ -6,7 +6,7 @@ object Stooges extends Enumeration {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     println(Stooges.Larry)
     println(Stooges.Curly)
     println(Stooges.Moe)

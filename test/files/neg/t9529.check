@@ -1,4 +1,0 @@
-t9529.scala:7: error: Java annotation Deprecated may not appear multiple times on class TooMany
-class TooMany
-      ^
-one error found

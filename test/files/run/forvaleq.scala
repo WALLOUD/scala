@@ -1,5 +1,6 @@
 // test "foo = expr" clauses in for comprehensions
 
+import scala.collection.immutable.Queue
 import scala.{List=>L}
 
 object Test {
@@ -86,5 +87,5 @@ object Test {
     println("called " + count + " times")
   }
 
-  def main(args: Array[String]): Unit = {}
+  def main(args: Array[String]) {}
 }

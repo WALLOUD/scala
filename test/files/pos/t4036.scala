@@ -1,5 +1,5 @@
 object Error {
-  def f: Unit = {
+  def f {
     case class X(b: Boolean = false)
     val r = X()
   }

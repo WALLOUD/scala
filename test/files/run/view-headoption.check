@@ -7,8 +7,6 @@ f2: 5
 fail
 success
 fail
-success
-fail
 fail
 success
 fail
@@ -16,6 +14,8 @@ fail
 fail
 success
 f3: Some(5)
+fail
+success
 fail
 success
 fail

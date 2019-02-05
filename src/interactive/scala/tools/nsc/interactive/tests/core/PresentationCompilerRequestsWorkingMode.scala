@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.tools.nsc
 package interactive
 package tests.core
@@ -27,7 +15,7 @@ trait PresentationCompilerRequestsWorkingMode extends TestResources {
    *  `marker`. For instance, askAllSources(TypeMarker)(askTypeAt)(println) would
    *  ask the type at all positions marked with `TypeMarker.marker` and println the result.
    */
-  private def askAllSourcesAsync[T](marker: TestMarker)(askAt: Position => Response[T])(f: (Position, T) => Unit): Unit = {
+  private def askAllSourcesAsync[T](marker: TestMarker)(askAt: Position => Response[T])(f: (Position, T) => Unit) {
     val positions = allPositionsOf(str = marker.marker)
     val responses = for (pos <- positions) yield askAt(pos)
 
@@ -37,7 +25,7 @@ trait PresentationCompilerRequestsWorkingMode extends TestResources {
   /** Synchronous version of askAllSources. Each position is treated in turn, waiting for the
    *  response before going to the next one.
    */
-  private def askAllSourcesSync[T](marker: TestMarker)(askAt: Position => Response[T])(f: (Position, T) => Unit): Unit = {
+  private def askAllSourcesSync[T](marker: TestMarker)(askAt: Position => Response[T])(f: (Position, T) => Unit) {
     val positions = allPositionsOf(str = marker.marker)
     for (pos <- positions) withResponse(pos, askAt(pos))(f)
   }
@@ -57,7 +45,7 @@ trait PresentationCompilerRequestsWorkingMode extends TestResources {
     buf.toList
   }
 
-  private def withResponse[T](pos: Position, response: Response[T])(f: (Position, T) => Unit): Unit = {
+  private def withResponse[T](pos: Position, response: Response[T])(f: (Position, T) => Unit) {
     /** Return the filename:line:col version of this position. */
     def showPos(pos: Position): String =
       "%s:%d:%d".format(pos.source.file.name, pos.line, pos.column)

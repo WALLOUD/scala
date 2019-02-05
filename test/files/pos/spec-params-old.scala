@@ -1,5 +1,3 @@
-import scala.reflect.ClassManifest
-
 class Foo[@specialized A: ClassManifest] {
 
   // conflicting in bounds, expect a normalized member calling m

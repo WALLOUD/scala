@@ -15,7 +15,7 @@ object DepBug {
     val b = a.mkB
   }
 
-  def useDep(d : Dep): Unit = {
+  def useDep(d : Dep) {
     import d._
     a.m(b)         // OK
   }

@@ -1,5 +1,3 @@
-// scalac: -Xlint:missing-interpolator -Xfatal-warnings
-//
 
 package test
 

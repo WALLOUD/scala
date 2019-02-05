@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc.interpreter
@@ -116,7 +109,7 @@ trait MemberHandlers {
 
     def resultExtractionCode(req: Request): String = ""
 
-    private def shortName = this.getClass.toString.split('.').last
+    private def shortName = this.getClass.toString split '.' last
     override def toString = shortName + referencedNames.mkString(" (refs: ", ", ", ")")
   }
 
@@ -211,10 +204,10 @@ trait MemberHandlers {
       importableMembers(exitingTyper(targetType)).filterNot(isFlattenedSymbol).toList
 
     // non-wildcard imports
-    private def individualSelectors = selectors.filter(_.isSpecific)
+    private def individualSelectors = selectors filter analyzer.isIndividualImport
 
     /** Whether this import includes a wildcard import */
-    val importsWildcard = selectors.exists(_.isWildcard)
+    val importsWildcard = selectors exists analyzer.isWildcardImport
 
     def implicitSymbols = importedSymbols filter (_.isImplicit)
     def importedSymbols = individualSymbols ++ wildcardSymbols
@@ -233,7 +226,7 @@ trait MemberHandlers {
 
     /** The names imported by this statement */
     override lazy val importedNames: List[Name] = wildcardNames ++ individualNames
-    lazy val importsSymbolNamed: Set[String] = importedNames.map(_.toString).toSet
+    lazy val importsSymbolNamed: Set[String] = importedNames map (_.toString) toSet
 
     def importString = imp.toString
     override def resultExtractionCode(req: Request) = codegenln(importString) + "\n"

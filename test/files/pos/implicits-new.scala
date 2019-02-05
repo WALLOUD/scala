@@ -20,7 +20,7 @@ class C1492 {
 
   class X
 
-  def foo(x: X => X): Unit = {}
+  def foo(x: X => X) {}
 
   foo ( implicit x => implicitly[X] )
   foo { implicit x => implicitly[X] }

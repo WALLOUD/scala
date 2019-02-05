@@ -1,9 +1,12 @@
+
+
 import collection._
+
 
 // #4535
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val as = new mutable.ArrayStack[Int]
     as push 1
     as push 2
@@ -23,4 +26,5 @@ object Test {
       assert(as == as.reverse.reverse)
     }
   }
+
 }

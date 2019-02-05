@@ -1,6 +1,6 @@
 package foo {
   object C {
-    def foo: Unit = {
+    def foo {
       Console.println("foo")
     }
   }

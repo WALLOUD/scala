@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings -Ywarn-unused:imports
-//
 class Bippo {
   def length: Int = 123
   class Tree

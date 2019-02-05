@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2009-2013 Typesafe/Scala Solutions and LAMP/EPFL
+ * @author Martin Odersky
  */
-
 package scala
 package tools.nsc
 package interactive
@@ -25,7 +17,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
   val reporter = new StoreReporter
   val compiler = new Global(settings, reporter)
 
-  def askAndListen[T, U](msg: String,  arg: T, op: (T, Response[U]) => Unit): Unit = {
+  def askAndListen[T, U](msg: String,  arg: T, op: (T, Response[U]) => Unit) {
     if (settings.verbose) print(msg+" "+arg+": ")
     val TIMEOUT = 10 // ms
     val limit = System.currentTimeMillis() + randomDelayMillis
@@ -88,7 +80,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
       "In "+inputs(sfidx)+" at "+start+" take "+nchars+" to "+
       (if (toLeft) "left" else "right")
 
-    def deleteOne(): Unit = {
+    def deleteOne() {
       val sf = inputs(sfidx)
       deleted = sf.content(pos) :: deleted
       val sf1 = new BatchSourceFile(sf.file, sf.content.take(pos) ++ sf.content.drop(pos + 1))
@@ -96,7 +88,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
       askReload(sf1)
     }
 
-    def deleteAll(): Unit = {
+    def deleteAll() {
       print("/"+nchars)
       for (i <- 0 until nchars) {
         if (toLeft) {
@@ -112,7 +104,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
       }
     }
 
-    def insertAll(): Unit = {
+    def insertAll() {
       for (chr <- if (toLeft) deleted else deleted.reverse) {
         val sf = inputs(sfidx)
         val (pre, post) = sf./**/content splitAt pos
@@ -127,7 +119,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
   val testComment = "/**/"
 
   def testFileChanges(sfidx: Int) = {
-    lazy val testPositions: scala.collection.Seq[Int] = {
+    lazy val testPositions: Seq[Int] = {
       val sf = inputs(sfidx)
       val buf = new ArrayBuffer[Int]
       var pos = sf.content.indexOfSlice(testComment)
@@ -137,7 +129,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
       }
       buf
     }
-    def otherTest(): Unit = {
+    def otherTest() {
       if (testPositions.nonEmpty) {
         val pos = Position.offset(inputs(sfidx), rand.nextInt(testPositions.length))
         rand.nextInt(3) match {
@@ -161,7 +153,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
     }
   }
 
-  def doTest(sfidx: Int, changes: scala.collection.Seq[Change], testPositions: scala.collection.Seq[Int], otherTest: () => Unit): Option[ErrorTrace] = {
+  def doTest(sfidx: Int, changes: Seq[Change], testPositions: Seq[Int], otherTest: () => Unit): Option[ErrorTrace] = {
     print("new round with "+changes.length+" changes:")
     changes foreach (_.deleteAll())
     otherTest()
@@ -177,7 +169,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
   }
 
   case class ErrorTrace(
-    sfidx: Int, changes: scala.collection.Seq[Change], infos: scala.collection.Set[reporter.Info], content: Array[Char]) {
+    sfidx: Int, changes: Seq[Change], infos: scala.collection.Set[reporter.Info], content: Array[Char]) {
     override def toString =
       "Sourcefile: "+inputs(sfidx)+
       "\nChanges:\n  "+changes.mkString("\n  ")+
@@ -185,10 +177,10 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
       "\nContents:\n"+content.mkString
   }
 
-  def minimize(etrace: ErrorTrace): Unit = ()
+  def minimize(etrace: ErrorTrace) {}
 
   /**/
-  def run(): Unit = {
+  def run() {
     askReload(inputs: _*)
     for (i <- 0 until ntests)
       testFileChanges(randomSourceFileIdx())
@@ -206,7 +198,7 @@ class Tester(ntests: Int, inputs: Array[SourceFile], settings: Settings) {
  * do ask-types, type-completions, or scope-completions.
  */
 object Tester {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val settings = new Settings()
     val (_, filenames) = settings.processArguments(args.toList.tail, processAll = true)
     println("filenames = "+filenames)

@@ -3,7 +3,7 @@ import scala.language.{ higherKinds }
 
 object Test {
 
- def benchmarkA(num: Int): Unit = {
+ def benchmarkA(num: Int) {
 
    type A = Int
 

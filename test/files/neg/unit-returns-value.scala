@@ -1,13 +1,11 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
-  def f: Unit = {
+  def f {
     var b = false
     if (b) return 5
   }
 
   // no warning
-  def g: Unit = {
+  def g {
     return println("hello")
   }
 }

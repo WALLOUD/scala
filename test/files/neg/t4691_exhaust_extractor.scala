@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 sealed trait Foo
 class Bar1 extends Foo
 class Bar2 extends Foo

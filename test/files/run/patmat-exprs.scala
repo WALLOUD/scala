@@ -1,5 +1,3 @@
-// scalac: -deprecation
-//
 
 import scala.language.{ implicitConversions }
 import runtime.ScalaRunTime
@@ -464,7 +462,7 @@ trait Pattern {
     def derivative(v: Var[T]) = Mul(Mul(Const(num.two), expr), expr.derivative(v))
     def eval(f: Any => Any) = num.sqr(expr.eval(f))
     def mapArgs(f: EndoFunction[Expr[_]]) = Sqr(f(expr))
-    override def toString = expr.toString + " ^ 2"
+    override def toString = expr + " ^ 2"
     override lazy val hashCode = ScalaRunTime._hashCode(this);
   }
 

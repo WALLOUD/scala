@@ -10,5 +10,5 @@ object Impls {
 }
 
 object Macros {
-  def foo: Unit = macro Impls.impl
+  def foo = macro Impls.impl
 }

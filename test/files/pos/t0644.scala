@@ -1,6 +1,6 @@
 class A {
   def apply(): Int = 0
-  def update(n: Int): Unit = {}
+  def update(n: Int) {}
 }
 
 class B extends A {

@@ -8,7 +8,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 import scala.collection.JavaConverters._
-import scala.reflect.internal.util.JavaClearable
 import scala.tools.nsc.backend.jvm.BTypes.MethodInlineInfo
 import scala.tools.nsc.backend.jvm.BackendReporting._
 import scala.tools.testing.BytecodeTesting
@@ -21,7 +20,7 @@ class InlineInfoTest extends BytecodeTesting {
   override def compilerArgs = "-opt:l:inline -opt-inline-from:**"
 
   compiler.keepPerRunCachesAfterRun(List(
-    JavaClearable.forMap(bTypes.classBTypeCache),
+    bTypes.classBTypeCache,
     postProcessor.byteCodeRepository.compilingClasses,
     postProcessor.byteCodeRepository.parsedClasses))
 
@@ -46,7 +45,7 @@ class InlineInfoTest extends BytecodeTesting {
       """.stripMargin
     val classes = compileClasses(code)
 
-    val fromSyms = classes.map(c => global.genBCode.bTypes.cachedClassBType(c.name).info.get.inlineInfo)
+    val fromSyms = classes.map(c => global.genBCode.bTypes.cachedClassBType(c.name).get.info.get.inlineInfo)
 
     val fromAttrs = classes.map(c => {
       assert(c.attrs.asScala.exists(_.isInstanceOf[InlineInfoAttribute]), c.attrs)
@@ -65,7 +64,7 @@ class InlineInfoTest extends BytecodeTesting {
         |}
       """.stripMargin
     compileClasses("class C { new A }", javaCode = List((jCode, "A.java")))
-    val info = global.genBCode.bTypes.cachedClassBType("A").info.get.inlineInfo
+    val info = global.genBCode.bTypes.cachedClassBType("A").get.info.get.inlineInfo
     assertEquals(info.methodInfos, Map(
       "bar()I"    -> MethodInlineInfo(true,false,false),
       "<init>()V" -> MethodInlineInfo(false,false,false),
@@ -86,7 +85,7 @@ class InlineInfoTest extends BytecodeTesting {
     compileClasses("class C { def t: java.nio.file.WatchEvent.Kind[String] = null }", javaCode = List((jCode, "WatchEvent.java")))
     // before the fix of scala-dev#402, the companion of the nested class `Kind` (containing the static method) was taken from
     // the classpath (classfile WatchEvent$Kind.class) instead of the actual companion from the source, so the static method was missing.
-    val info = global.genBCode.bTypes.cachedClassBType("java/nio/file/WatchEvent$Kind").info.get.inlineInfo
+    val info = global.genBCode.bTypes.cachedClassBType("java/nio/file/WatchEvent$Kind").get.info.get.inlineInfo
     assertEquals(info.methodInfos, Map(
       "HAI()Ljava/lang/String;" -> MethodInlineInfo(true,false,false),
       "<init>()V"               -> MethodInlineInfo(false,false,false)))

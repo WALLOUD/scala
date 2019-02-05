@@ -1,14 +1,10 @@
-/*
- * Scala classfile decoder (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*     ___ ____ ___   __   ___   ___
+**    / _// __// _ | / /  / _ | / _ \    Scala classfile decoder
+**  __\ \/ /__/ __ |/ /__/ __ |/ ___/    (c) 2003-2013, LAMP/EPFL
+** /____/\___/_/ |_/____/_/ |_/_/        http://scala-lang.org/
+**
+*/
+
 
 package scala.tools.scalap
 package scalax
@@ -33,9 +29,9 @@ object ScalaSigParser {
       case ArrayValue(signatureParts) => mergedLongSignatureBytes(signatureParts)
     }
 
-    def mergedLongSignatureBytes(signatureParts: Seq[ElementValue]): Array[Byte] = signatureParts.iterator.flatMap {
+    def mergedLongSignatureBytes(signatureParts: Seq[ElementValue]): Array[Byte] = signatureParts.flatMap {
       case ConstValueIndex(index) => bytesForIndex(index)
-    }.toArray
+    }(collection.breakOut)
 
     def bytesForIndex(index: Int) = constantWrapped(index).asInstanceOf[StringBytesPair].bytes
 

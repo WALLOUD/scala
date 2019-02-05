@@ -1,5 +1,3 @@
-// scalac: -Yrangepos
-//
 object Test {
   val c: scala.reflect.macros.blackbox.Context = ???
   import c.universe._

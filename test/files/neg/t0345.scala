@@ -1,6 +1,6 @@
 object Lizt {
     val empty = new Lizt[Nothing] {
-        def cons[A](a : A): Unit = {}
+        def cons[A](a : A) {}
     }
 }
 
@@ -10,6 +10,6 @@ trait Lizt[A] {
 class Test {
     abstract class C[A] {}
     val c = new C[Int] {
-        def f[A](x: A): Unit = {}
+        def f[A](x: A) {}
     }
  }

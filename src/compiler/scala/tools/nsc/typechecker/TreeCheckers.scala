@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
@@ -20,7 +13,7 @@ import scala.reflect.internal.util.StringOps._
 abstract class TreeCheckers extends Analyzer {
   import global._
 
-  override protected def onTreeCheckerError(pos: Position, msg: String): Unit = {
+  override protected def onTreeCheckerError(pos: Position, msg: String) {
     if (settings.fatalWarnings)
       reporter.warning(pos, "\n** Error during internal checking:\n" + msg)
   }
@@ -102,7 +95,7 @@ abstract class TreeCheckers extends Analyzer {
     val movedMsgs     = mutable.ListBuffer[String]()
     def sortedNewSyms = newSyms.toList.distinct sortBy (_.name.toString)
 
-    def record(tree: Tree): Unit = {
+    def record(tree: Tree) {
       val sym = tree.symbol
       if ((sym eq null) || (sym eq NoSymbol)) return
 
@@ -156,7 +149,7 @@ abstract class TreeCheckers extends Analyzer {
       traverse(unit.body)
       reportChanges()
     }
-    override def traverse(tree: Tree): Unit = {
+    override def traverse(tree: Tree) {
       record(tree)
       super.traverse(tree)
     }
@@ -176,7 +169,7 @@ abstract class TreeCheckers extends Analyzer {
   def errorFn(pos: Position, msg: Any): Unit = reporter.warning(pos, "[check: %s] %s".format(phase.prev, msg))
   def errorFn(msg: Any): Unit                = errorFn(NoPosition, msg)
 
-  def informFn(msg: Any): Unit = {
+  def informFn(msg: Any) {
     if (settings.verbose || settings.debug)
       println("[check: %s] %s".format(phase.prev, msg))
   }
@@ -194,7 +187,7 @@ abstract class TreeCheckers extends Analyzer {
     }
   }
 
-  def checkTrees(): Unit = {
+  def checkTrees() {
     if (settings.verbose)
       Console.println("[consistency check at the beginning of phase " + phase + "]")
 
@@ -209,7 +202,7 @@ abstract class TreeCheckers extends Analyzer {
     assertFn(currentUnit == unit, "currentUnit is " + currentUnit + ", but unit is " + unit)
     currentRun.currentUnit = unit0
   }
-  def check(unit: CompilationUnit): Unit = {
+  def check(unit: CompilationUnit) {
     informProgress("checking "+unit)
     val context = rootContext(unit, checking = true)
     tpeOfTree.clear()
@@ -290,7 +283,7 @@ abstract class TreeCheckers extends Analyzer {
         case _             => traverseInternal(tree)
       }
 
-      private def traverseInternal(tree: Tree): Unit = {
+      private def traverseInternal(tree: Tree) {
         if (!tree.canHaveAttrs)
           return
 
@@ -367,7 +360,7 @@ abstract class TreeCheckers extends Analyzer {
         super.traverse(tree)
       }
 
-      private def checkSymbolRefsRespectScope(enclosingMemberDefs: List[MemberDef], tree: Tree): Unit = {
+      private def checkSymbolRefsRespectScope(enclosingMemberDefs: List[MemberDef], tree: Tree) {
         def symbolOf(t: Tree): Symbol  = if (t.symbol eq null) NoSymbol else t.symbol
         def typeOf(t: Tree): Type      = if (t.tpe eq null) NoType else t.tpe
         def infoOf(t: Tree): Type      = symbolOf(t).info

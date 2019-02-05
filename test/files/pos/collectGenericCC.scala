@@ -1,8 +1,9 @@
+import scala.collection.generic.CanBuildFrom
 import scala.collection._
 
 object Test {
-  def collect[A, Res](r: Iterable[A])(implicit bf: Factory[A, Res]) = {
-    val b: collection.mutable.Builder[A, Res] = bf.newBuilder
+  def collect[A, Res](r: Traversable[A])(implicit bf: generic.CanBuild[A, Res]) = {
+    val b: collection.mutable.Builder[A, Res] = bf()
     r foreach ((a: A) => b += a)
     b.result
   }

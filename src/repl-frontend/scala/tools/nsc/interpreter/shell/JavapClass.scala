@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Paul Phillips
  */
-
 package scala.tools.nsc.interpreter.shell
 
 import java.io._
@@ -20,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import javax.tools._
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.Clearable
+import scala.collection.generic.Clearable
 import scala.io.Source
 import scala.language.reflectiveCalls
 import scala.reflect.internal.util.ScalaClassLoader
@@ -223,7 +215,7 @@ class JavapClass(
     class JavaReporter extends DiagnosticListener[JavaFileObject] with Clearable {
       type D = Diagnostic[_ <: JavaFileObject]
       val diagnostics = new ConcurrentLinkedQueue[D]
-      override def report(d: Diagnostic[_ <: JavaFileObject]): Unit = {
+      override def report(d: Diagnostic[_ <: JavaFileObject]) {
         diagnostics add d
       }
       override def clear() = diagnostics.clear()

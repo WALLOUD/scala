@@ -30,9 +30,6 @@ object a {
 }
 
 object Test extends App {
-  // strip module name
-  def filtered(s: Any) = s.toString.replaceAllLiterally("java.base/", "")
-
   def test(methName: String, arg: Any) = {
     val moduleA = cm.reflect(a)
     val msym = moduleA.symbol.info.decl(TermName(methName)).asMethod
@@ -47,7 +44,7 @@ object Test extends App {
       }
     println(s"as seen by Scala reflection: ${msym.asInstanceOf[scala.reflect.internal.Symbols#Symbol].defString}")
     println(s"as seen by Java reflection: ${mmirror.asInstanceOf[{val jmeth: java.lang.reflect.Method}].jmeth}")
-    println(s"result = ${filtered(mresult)}")
+    println(s"result = $mresult")
   }
 
   test("yg_1", new Y(1))

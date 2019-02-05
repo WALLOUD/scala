@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -22,7 +15,7 @@ object MainTokenMetric {
 
   private var reporter: ConsoleReporter = _
 
-  def tokenMetric(compiler: Global, fnames: List[String]): Unit = {
+  def tokenMetric(compiler: Global, fnames: List[String]) {
     import compiler.CompilationUnit
     import compiler.syntaxAnalyzer.UnitScanner
     import ast.parser.Tokens.EOF
@@ -41,7 +34,7 @@ object MainTokenMetric {
     Console.println(totale.toString()+" total")
   }
 
-  def process(args: Array[String]): Unit = {
+  def process(args: Array[String]) {
     val settings = new Settings(msg => throw new RuntimeException(msg))
     reporter = new ConsoleReporter(settings)
     val command = new CompilerCommand(args.toList, settings)
@@ -56,7 +49,7 @@ object MainTokenMetric {
     }
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     process(args)
     System.exit(if (reporter.hasErrors) 1 else 0)
   }

@@ -1,5 +1,3 @@
-// scalac: -opt:l:inline -opt-inline-from:**
-//
 object Test extends App {
   println(new A_1.Inner())
 

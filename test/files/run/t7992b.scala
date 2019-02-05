@@ -12,7 +12,7 @@ class E extends C {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     new E().foo
   }
 }

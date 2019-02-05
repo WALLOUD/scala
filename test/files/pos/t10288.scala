@@ -1,5 +1,3 @@
-
-// scalac: -Xsource:2.13
 trait Target
 trait Unrelated
 

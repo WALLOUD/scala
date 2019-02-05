@@ -13,7 +13,7 @@ object TestCase {
       def is(xs: List[T]) = List(xs)
     }
 
-    def main(args: Array[String]): Unit = {
+    def main(args: Array[String]) {
       println(Map(1 -> "2") is List(2))
     }
 

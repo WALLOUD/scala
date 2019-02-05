@@ -6,7 +6,7 @@ object Bar {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val f = Foo("1", "2")
     f match {
       case Foo(Bar(1), Bar(2)) => 1

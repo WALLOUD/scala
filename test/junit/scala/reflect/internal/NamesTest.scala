@@ -26,7 +26,7 @@ class NamesTest {
                          // an assertion for that in toTermName.
 
   @Test
-  def termNamesAreHashConsed(): Unit = {
+  def termNamesAreHashConsed() {
     assertTrue(h1 eq h2)
     assertEquals(h1, h2)
     assertTrue(h1 ne f)
@@ -34,7 +34,7 @@ class NamesTest {
   }
 
   @Test
-  def termNamesNotEqualsTypeNames(): Unit = {
+  def termNamesNotEqualsTypeNames() {
     assert(h1 ne h1y)
     assert(h1 != h1y)
     assert(h2 ne h2y)
@@ -42,14 +42,14 @@ class NamesTest {
   }
 
   @Test
-  def termNamesTypeNamesSameRange(): Unit = {
+  def termNamesTypeNamesSameRange() {
     assert(h1.start == h1y.start && h1.length == h1y.length)
     assert(h2.start == h2y.start && h2.length == h2y.length)
     assert(u.start == uy.start && u.length == uy.length)
   }
 
   @Test
-  def testLookupTypeName(): Unit = {
+  def testLookupTypeName() {
     assert(lookupTypeName("hai".toCharArray) eq h1y)
     assert(lookupTypeName("fisch".toCharArray) eq fy)
     assert(lookupTypeName("uhu".toCharArray) eq uy)
@@ -62,7 +62,7 @@ class NamesTest {
   }
 
   @Test
-  def emptyName(): Unit = {
+  def emptyName() {
     val z = newTermName("")
     val zy = z.toTypeName
     assertEquals(z.toString, "")
@@ -72,7 +72,7 @@ class NamesTest {
   }
 
   @Test
-  def subNameTest(): Unit = {
+  def subNameTest() {
     val i = f.subName(1, f.length)
     assert(i.start == (f.start + 1) && i.length == (f.length - 1))
     assert(f.subName(0, f.length) eq f)
@@ -88,7 +88,7 @@ class NamesTest {
   }
 
   @Test
-  def stringEqualsTest(): Unit = {
+  def stringEqualsTest() {
     assert(h1 string_== h2)
     assert(h1 string_== h1y)
   }

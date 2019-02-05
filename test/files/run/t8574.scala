@@ -16,7 +16,7 @@ object Test extends App {
       assert(isStrict, cls)
     }
   }
-  def check(x: AnyRef): Unit = {
+  def check(x: AnyRef) {
     checkUID(x.getClass, 42)
     checkStrictFp(x.getClass)
   }

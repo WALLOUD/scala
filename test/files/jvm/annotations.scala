@@ -1,6 +1,4 @@
-// scalac: -deprecation
-//
-import scala.tools.partest.Util.ArrayDeep
+
 import scala.language.{ higherKinds, reflectiveCalls }
 
 object Test2 {
@@ -11,7 +9,7 @@ object Test2 {
     @throws(classOf[IOException])
     def read() = in.read()
   }
-  def run: Unit = {
+  def run {
     val method = classOf[Reader].getMethod("read")
     method.getExceptionTypes foreach println
   }
@@ -34,7 +32,7 @@ object Test3 {
     @Deprecated
     def foo: Unit = ()
   }
-  def run: Unit = {
+  def run {
     val method = classOf[Foo].getMethod("foo")
     val annotation = method.getAnnotation(classOf[Deprecated])
     println(annotation)
@@ -105,15 +103,15 @@ object Test4 {
   class Foo10(@SourceAnnotation("on param 1") val name: String)
   class Foo11(@(SourceAnnotation @scala.annotation.meta.field)("on param 2") val name: String)
   class Foo12(@(SourceAnnotation @scala.annotation.meta.setter)("on param 3") var name: String)
-  def run: Unit = {
+  def run {
     import java.lang.annotation.Annotation
     import java.lang.reflect.AnnotatedElement
-    def printSourceAnnotation(a: Annotation): Unit = {
+    def printSourceAnnotation(a: Annotation) {
       val ann = a.asInstanceOf[SourceAnnotation]
       println("@test.SourceAnnotation(mails=" + ann.mails.deep.mkString("{", ",", "}") +
               ", value=" + ann.value + ")")
     }
-    def printSourceAnnotations(target: AnnotatedElement): Unit = {
+    def printSourceAnnotations(target: AnnotatedElement) {
       //print SourceAnnotation in a predefined way to insure
       // against difference in the JVMs (e.g. Sun's vs IBM's)
       val anns = target.getAnnotations()
@@ -123,7 +121,7 @@ object Test4 {
         println
       }
     }
-    def printParamSourceAnnotations(target: { def getParameterAnnotations(): Array[Array[Annotation]] }): Unit = {
+    def printParamSourceAnnotations(target: { def getParameterAnnotations(): Array[Array[Annotation]] }) {
       val anns = target.getParameterAnnotations().flatten
       anns foreach printSourceAnnotation
       if (anns.length > 0) {
@@ -171,9 +169,9 @@ object Test5 {
       getClass().getMethod("setCount", classOf[Integer])
 
     def get = getter.invoke(this).asInstanceOf[Integer].intValue
-    def set(n: Int) = setter.invoke(this, Integer.valueOf(n))
+    def set(n: Int) = setter.invoke(this, new Integer(n))
   }
-  def run: Unit = {
+  def run {
     val count = new Count
     println(count.get)
     count.set(99)
@@ -189,7 +187,7 @@ object Test6 {
     @BeanProperty val m: Int = if (prop) 1 else 2
   }
 
-  def run: Unit = {
+  def run {
     val c = new C("bob")
     c.setText("dylan")
     println(c.getText())
@@ -205,7 +203,7 @@ object Test6 {
 class A3345(@volatile private var i:Int)
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     Test2.run
     Test3.run     // requires the use of -target:jvm-1.5
     Test4.run

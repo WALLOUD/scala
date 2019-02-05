@@ -7,9 +7,9 @@ object Test {
   import interpreter._
   import java.io.PrintWriter
 
-  class NullOutputStream extends OutputStream { def write(b: Int): Unit = { } }
+  class NullOutputStream extends OutputStream { def write(b: Int) { } }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val settings = new Settings
     settings.classpath.value = System.getProperty("java.class.path")
 

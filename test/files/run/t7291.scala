@@ -11,12 +11,12 @@ object Fooable {
 }
 
 object Test {
-  implicit def traversable[T, Coll[_] <: Iterable[_]](implicit
+  implicit def traversable[T, Coll[_] <: Traversable[_]](implicit
 elem: Fooable[T]): Fooable[Coll[T]] = {
     println("traversable")
     new Fooable[Coll[T]]{}
   }
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     implicitly[Fooable[List[Any]]]
   }
 }

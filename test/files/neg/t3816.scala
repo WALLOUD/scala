@@ -1,5 +1,5 @@
 class B {
-    def ::(a: List[Int]): Unit = {
+    def ::(a: List[Int]) {
         a match {
             case x::xs =>
             case _ =>

@@ -1,4 +1,3 @@
-// scalac: -Xfatal-warnings -deprecation
 class A {
   @native def setup(): Unit
 

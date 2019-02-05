@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Martin Odersky
  */
 
 package scala.tools.nsc
@@ -70,10 +63,10 @@ abstract class SubComponent {
 
   /** The phase corresponding to this subcomponent in the current compiler run */
   def ownPhase: Phase = {
-    val cache = ownPhaseCache.underlying.get
-    if (cache != null && ownPhaseRunId == global.currentRunId)
-      cache
-    else {
+    ownPhaseCache.get match {
+      case Some(phase) if ownPhaseRunId == global.currentRunId =>
+        phase
+      case _ =>
         val phase = global.currentRun.phaseNamed(phaseName)
         ownPhaseCache = new WeakReference(phase)
         ownPhaseRunId = global.currentRunId

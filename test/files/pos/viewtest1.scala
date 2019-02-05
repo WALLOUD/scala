@@ -32,7 +32,7 @@ abstract class Tree[+a <% Ordered[a]] {
 object Test {
   import O.view
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     var t: Tree[String] = Empty
     for (s <- args) {
       t = t insert s

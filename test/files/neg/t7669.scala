@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
 
   sealed abstract class Expr

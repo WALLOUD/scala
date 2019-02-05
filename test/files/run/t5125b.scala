@@ -35,7 +35,7 @@ class C5 {
 }
 
 object Test extends App {
-  def check(c: Class[_]): Unit = {
+  def check(c: Class[_]) {
     val methodName = "f"
     val methods = c.getDeclaredMethods.filter(_.getName == methodName)
     println(methods.map(_.toString).sorted.mkString("\n"))

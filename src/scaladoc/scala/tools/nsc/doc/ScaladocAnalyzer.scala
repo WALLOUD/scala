@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2007-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
@@ -15,6 +8,7 @@ package doc
 
 import scala.tools.nsc.ast.parser.{ SyntaxAnalyzer, BracePatch }
 import typechecker.Analyzer
+import scala.reflect.internal.Chars._
 import scala.reflect.internal.util.{ BatchSourceFile, Position }
 import scala.tools.nsc.doc.base.{ CommentFactoryBase, MemberLookupBase, LinkTo }
 
@@ -25,6 +19,7 @@ trait ScaladocAnalyzer extends Analyzer {
   override def newTyper(context: Context): ScaladocTyper = new Typer(context) with ScaladocTyper
 
   trait ScaladocTyper extends Typer {
+    private def unit = context.unit
 
     override def canAdaptConstantTypeToLiteral = false
 

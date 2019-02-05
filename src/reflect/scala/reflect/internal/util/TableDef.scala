@@ -1,20 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect.internal.util
 
 import TableDef._
-import scala.collection.immutable.AbstractSeq
 import scala.language.postfixOps
 
 /** A class for representing tabular data in a way that preserves
@@ -29,7 +16,7 @@ class TableDef[T](_cols: Column[T]*) {
   def ~(next: Column[T])            = retThis(cols :+= next)
 
   // Below this point should all be considered private/internal.
-  private[this] var cols: List[Column[T]] = _cols.toList
+  private var cols: List[Column[T]] = _cols.toList
 
   def defaultSep(index: Int)   = if (index > (cols.size - 2)) "" else " "
   def sepAfter(i: Int): String = defaultSep(i)
@@ -40,7 +27,7 @@ class TableDef[T](_cols: Column[T]*) {
   def colApply(el: T) = colFunctions map (f => f(el))
   def retThis(body: => Unit): this.type = { body ; this }
 
-  class Table(val rows: Seq[T]) extends AbstractSeq[T] {
+  class Table(val rows: Seq[T]) extends Seq[T] {
     def iterator          = rows.iterator
     def apply(index: Int) = rows(index)
     def length            = rows.length
@@ -55,7 +42,7 @@ class TableDef[T](_cols: Column[T]*) {
 
     val headers = List(
       headFormat.format(colNames: _*),
-      colWidths.lazyZip(sepWidths).map((w1, w2) => "-" * w1 + " " * w2).mkString
+      (colWidths, sepWidths).zipped map ((w1, w2) => "-" * w1 + " " * w2) mkString
     )
 
     def mkFormatString(sepf: Int => String): String =

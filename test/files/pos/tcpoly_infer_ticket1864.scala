@@ -32,7 +32,7 @@ object App {
   }
 
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     implicit def richBuffer[T, B[U] <: Buffer[U]](buffer: B[T]): RichBuffer[T, B] =
       new RichBuffer[T, B](buffer)
 

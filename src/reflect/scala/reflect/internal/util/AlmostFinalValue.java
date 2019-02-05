@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.reflect.internal.util;
 
 import java.lang.invoke.MethodHandle;
@@ -34,46 +22,46 @@ import java.lang.invoke.SwitchPoint;
  * we cannot do that if we make `Statistics` an object extending `MutableCallSite`
  * in Scala. We instead rely on the Java implementation that uses a boxed representation.
  */
-public class AlmostFinalValue {
-  private final AlmostFinalCallSite callsite =
-      new AlmostFinalCallSite(this);
+public class AlmostFinalValue<V> {
+  private final AlmostFinalCallSite<V> callsite =
+      new AlmostFinalCallSite<>(this);
   
-  protected boolean initialValue() {
-    return false;
+  protected V initialValue() {
+    return null;
   }
   
   public MethodHandle createGetter() {
     return callsite.dynamicInvoker();
   }
   
-  public void setValue(boolean value) {
+  public void setValue(V value) {
     callsite.setValue(value);
   }
   
-  private static class AlmostFinalCallSite extends MutableCallSite {
-    private Boolean value;
+  private static class AlmostFinalCallSite<V> extends MutableCallSite {
+    private Object value;
     private SwitchPoint switchPoint;
-    private final AlmostFinalValue volatileFinalValue;
+    private final AlmostFinalValue<V> volatileFinalValue;
     private final MethodHandle fallback;
     private final Object lock;
     
-    private static final Boolean NONE = null;
+    private static final Object NONE = new Object();
     private static final MethodHandle FALLBACK;
     static {
       try {
         FALLBACK = MethodHandles.lookup().findVirtual(AlmostFinalCallSite.class, "fallback",
-            MethodType.methodType(Boolean.TYPE));
+            MethodType.methodType(Object.class));
       } catch (NoSuchMethodException|IllegalAccessException e) {
         throw new AssertionError(e.getMessage(), e);
       }
     }
     
-    AlmostFinalCallSite(AlmostFinalValue volatileFinalValue) {
-      super(MethodType.methodType(Boolean.TYPE));
+    AlmostFinalCallSite(AlmostFinalValue<V> volatileFinalValue) {
+      super(MethodType.methodType(Object.class));
       Object lock = new Object();
       MethodHandle fallback = FALLBACK.bindTo(this);
       synchronized(lock) {
-        value = null;
+        value = NONE;
         switchPoint = new SwitchPoint();
         setTarget(fallback);
       }
@@ -82,19 +70,19 @@ public class AlmostFinalValue {
       this.fallback = fallback;
     }
 
-    boolean fallback() {
+    Object fallback() {
       synchronized(lock) {
-        Boolean value = this.value;
+        Object value = this.value;
         if (value == NONE) {
           value = volatileFinalValue.initialValue();
         }
-        MethodHandle target = switchPoint.guardWithTest(MethodHandles.constant(Boolean.TYPE, value), fallback);
+        MethodHandle target = switchPoint.guardWithTest(MethodHandles.constant(Object.class, value), fallback);
         setTarget(target);
         return value;
       }
     }
     
-    void setValue(boolean value) {
+    void setValue(V value) {
       synchronized(lock) {
         SwitchPoint switchPoint = this.switchPoint;
         this.value = value;

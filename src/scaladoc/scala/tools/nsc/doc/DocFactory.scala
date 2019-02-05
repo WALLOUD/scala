@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2007-2013 LAMP/EPFL
+ * @author  David Bernard, Manohar Jonnalagedda
  */
 
 package scala.tools.nsc
@@ -108,7 +101,7 @@ class DocFactory(val reporter: Reporter, val settings: doc.Settings) { processor
 
   /** Generate document(s) for all `files` containing scaladoc documentation.
     * @param files The list of paths (relative to the compiler's source path, or absolute) of files to document. */
-  def document(files: List[String]): Unit = {
+  def document(files: List[String]) {
     def generate() = {
       import doclet._
       val docletClass    = Class.forName(settings.docgenerator.value) // default is html.Doclet
@@ -122,7 +115,7 @@ class DocFactory(val reporter: Reporter, val settings: doc.Settings) { processor
         .map(_.newInstance(reporter))
         .getOrElse{
           reporter.warning(null, "Doclets should be created with the Reporter constructor, otherwise logging reporters will not be shared by the creating parent")
-          docletClass.getConstructor().newInstance()
+          docletClass.newInstance()
         }
         .asInstanceOf[Generator]
 
@@ -139,7 +132,7 @@ class DocFactory(val reporter: Reporter, val settings: doc.Settings) { processor
     catch documentError
   }
 
-  private[doc] def docdbg(msg: String): Unit = {
+  private[doc] def docdbg(msg: String) {
     if (settings.Ydocdebug)
       println(msg)
   }

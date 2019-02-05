@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author
  */
 
 package scala
@@ -137,7 +130,7 @@ abstract class UnCurry extends InfoTransform
 
     /** The type of a non-local return expression with given argument type */
     private def nonLocalReturnExceptionType(argtype: Type) =
-      appliedType(NonLocalReturnControlClass, argtype :: Nil)
+      appliedType(NonLocalReturnControlClass, argtype)
 
     /** A hashmap from method symbols to non-local return keys */
     private val nonLocalReturnKeys = perRunCaches.newMap[Symbol, Symbol]()
@@ -247,14 +240,14 @@ abstract class UnCurry extends InfoTransform
         }
       }
 
-    def transformArgs(pos: Position, fun: Symbol, args: List[Tree], formals: List[Type]): List[Tree] = {
+    def transformArgs(pos: Position, fun: Symbol, args: List[Tree], formals: List[Type]) = {
       val isJava = fun.isJavaDefined
       def transformVarargs(varargsElemType: Type) = {
         def mkArrayValue(ts: List[Tree], elemtp: Type) =
           ArrayValue(TypeTree(elemtp), ts) setType arrayType(elemtp)
 
         // when calling into scala varargs, make sure it's a sequence.
-        def arrayToSequence(tree: Tree, elemtp: Type, copy: Boolean) = {
+        def arrayToSequence(tree: Tree, elemtp: Type) = {
           exitingUncurry {
             localTyper.typedPos(pos) {
               val pt = arrayType(elemtp)
@@ -262,12 +255,7 @@ abstract class UnCurry extends InfoTransform
                 if (tree.tpe <:< pt) tree
                 else gen.mkCastArray(tree, elemtp, pt)
 
-              if(copy) {
-                currentRun.reporting.deprecationWarning(tree.pos, NoSymbol,
-                  "Passing an explicit array value to a Scala varargs method is deprecated (since 2.13.0) and will result in a defensive copy; "+
-                    "Use the more efficient non-copying ArraySeq.unsafeWrapArray or an explicit toIndexedSeq call", "2.13.0")
-                gen.mkMethodCall(PredefModule, nme.copyArrayToImmutableIndexedSeq, List(elemtp), List(adaptedTree))
-              } else gen.mkWrapVarargsArray(adaptedTree, elemtp)
+              gen.mkWrapArray(adaptedTree, elemtp)
             }
           }
         }
@@ -281,7 +269,7 @@ abstract class UnCurry extends InfoTransform
             // Don't want bottom types getting any further than this (scala/bug#4024)
             if (tp.typeSymbol.isBottomClass) getClassTag(AnyTpe)
             else if (!tag.isEmpty) tag
-            else if (tp.upperBound ne tp) getClassTag(tp.upperBound)
+            else if (tp.bounds.hi ne tp) getClassTag(tp.bounds.hi)
             else localTyper.TyperErrorGen.MissingClassTagError(tree, tp)
           }
           def traversableClassTag(tpe: Type): Tree = {
@@ -311,13 +299,13 @@ abstract class UnCurry extends InfoTransform
               else sequenceToArray(tree)
             else
               if (tree.tpe.typeSymbol isSubClass SeqClass) tree
-              else arrayToSequence(tree, varargsElemType, copy = isNewCollections) // existing array, make a defensive copy
+              else arrayToSequence(tree, varargsElemType)
           }
           else {
             def mkArray = mkArrayValue(args drop (formals.length - 1), varargsElemType)
             if (javaStyleVarArgs) mkArray
             else if (args.isEmpty) gen.mkNil  // avoid needlessly double-wrapping an empty argument list
-            else arrayToSequence(mkArray, varargsElemType, copy = false) // fresh array, no need to copy
+            else arrayToSequence(mkArray, varargsElemType)
           }
 
         exitingUncurry {
@@ -348,7 +336,7 @@ abstract class UnCurry extends InfoTransform
             case body =>
               val thunkFun = localTyper.typedPos(body.pos)(Function(Nil, body)).asInstanceOf[Function]
               log(s"Change owner from $currentOwner to ${thunkFun.symbol} in ${thunkFun.body}")
-              thunkFun.body.changeOwner(currentOwner, thunkFun.symbol)
+              thunkFun.body.changeOwner((currentOwner, thunkFun.symbol))
               transformFunction(thunkFun)
           }
         }
@@ -412,7 +400,7 @@ abstract class UnCurry extends InfoTransform
         debuglog("lifting tree at: " + (tree.pos))
         val sym = currentOwner.newMethod(unit.freshTermName("liftedTree"), tree.pos)
         sym.setInfo(MethodType(List(), tree.tpe))
-        tree.changeOwner(currentOwner, sym)
+        tree.changeOwner(currentOwner -> sym)
         localTyper.typedPos(tree.pos)(Block(
           List(DefDef(sym, ListOfNil, tree)),
           Apply(Ident(sym), Nil)
@@ -482,16 +470,10 @@ abstract class UnCurry extends InfoTransform
               super.transform(tree)
 
           case Apply(fn, args) =>
-            // Read formals before `transform(fn)`, because UnCurry replaces T* by Seq[T] (see DesugaredParameterType).
-            // The call to `transformArgs` below needs `formals` that still have varargs.
-            val formals = fn.tpe.paramTypes
-            val transformedFn = transform(fn)
-            // scala/bug#6479: no need to lift in args to label jumps
-            // scala/bug#11127: boolean && / || are emitted using jumps, the lhs stack value is consumed by the conditional jump
-            val noReceiverOnStack = fn.symbol.isLabel || fn.symbol == currentRun.runDefinitions.Boolean_and || fn.symbol == currentRun.runDefinitions.Boolean_or
-            val needLift = needTryLift || !noReceiverOnStack
+            val needLift = needTryLift || !fn.symbol.isLabel // scala/bug#6749, no need to lift in args to label jumps.
             withNeedLift(needLift) {
-              treeCopy.Apply(tree, transformedFn, transformTrees(transformArgs(tree.pos, fn.symbol, args, formals)))
+              val formals = fn.tpe.paramTypes
+              treeCopy.Apply(tree, transform(fn), transformTrees(transformArgs(tree.pos, fn.symbol, args, formals)))
             }
 
           case Assign(_: RefTree, _) =>
@@ -627,9 +609,8 @@ abstract class UnCurry extends InfoTransform
             flatdd
 
         case tree: Try =>
-          devWarningIf(tree.catches exists (!treeInfo.isCatchCase(_))) {
-            "VPM BUG - illegal try/catch " + tree.catches
-          }
+          if (tree.catches exists (cd => !treeInfo.isCatchCase(cd)))
+            devWarning("VPM BUG - illegal try/catch " + tree.catches)
           tree
 
         case Apply(Apply(fn, args), args1) =>
@@ -642,8 +623,6 @@ abstract class UnCurry extends InfoTransform
           applyUnary()
         case ret @ Return(expr) if isNonLocalReturn(ret) =>
           log(s"non-local return from ${currentOwner.enclMethod} to ${ret.symbol}")
-          if (settings.warnNonlocalReturn)
-            reporter.warning(ret.pos, s"return statement uses an exception to pass control to the caller of the enclosing named ${ret.symbol}")
           atPos(ret.pos)(nonLocalReturnThrow(expr, ret.symbol))
         case TypeTree() =>
           tree
@@ -822,7 +801,7 @@ abstract class UnCurry extends InfoTransform
           if (!isRep) Ident(param)
           else {
             val parTp = elementType(ArrayClass, param.tpe)
-            val wrap = gen.mkWrapVarargsArray(Ident(param), parTp)
+            val wrap = gen.mkWrapArray(Ident(param), parTp)
             param.attachments.get[TypeParamVarargsAttachment] match {
               case Some(TypeParamVarargsAttachment(tp)) => gen.mkCast(wrap, seqType(tp))
               case _ => wrap

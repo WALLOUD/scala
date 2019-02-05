@@ -1,19 +1,11 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Martin Odersky
  */
 
 package scala.tools.nsc
 package transform
 
-import scala.annotation.tailrec
 import scala.reflect.internal.ClassfileConstants._
 import scala.collection.{ mutable, immutable }
 import symtab._
@@ -52,30 +44,29 @@ abstract class Erasure extends InfoTransform
   }
 
   private object NeedsSigCollector extends TypeCollector(false) {
-    def apply(tp: Type): Unit =
+    def traverse(tp: Type) {
       if (!result) {
         tp match {
           case st: SubType =>
-            apply(st.supertype)
+            traverse(st.supertype)
           case TypeRef(pre, sym, args) =>
-            if (sym == ArrayClass) untilApply(args)
+            if (sym == ArrayClass) args foreach traverse
             else if (sym.isTypeParameterOrSkolem || sym.isExistentiallyBound || !args.isEmpty) result = true
-            else if (sym.isClass) apply(rebindInnerClass(pre, sym)) // #2585
-            else if (!sym.isTopLevel) apply(pre)
-          case PolyType(_, _) | ExistentialType(_, _) => result = true
+            else if (sym.isClass) traverse(rebindInnerClass(pre, sym)) // #2585
+            else if (!sym.isTopLevel) traverse(pre)
+          case PolyType(_, _) | ExistentialType(_, _) =>
+            result = true
           case RefinedType(parents, _) =>
-            untilApply(parents)
+            parents foreach traverse
           case ClassInfoType(parents, _, _) =>
-            untilApply(parents)
+            parents foreach traverse
           case AnnotatedType(_, atp) =>
-            apply(atp)
+            traverse(atp)
           case _ =>
-            tp.foldOver(this)
+            mapOver(tp)
         }
       }
-    @tailrec
-    private[this] def untilApply(ts: List[Type]): Unit =
-      if (! ts.isEmpty && ! result) { apply(ts.head) ; untilApply(ts.tail) }
+    }
   }
 
   override protected def verifyJavaErasure = settings.Xverify || settings.debug
@@ -281,7 +272,7 @@ abstract class Erasure extends InfoTransform
               case _ =>
                 boxedSig(tp)
             }
-          def classSig(): Unit = {
+          def classSig: Unit = {
             markClassUsed(sym)
             val preRebound = pre.baseType(sym.owner) // #2585
             if (needsJavaSig(preRebound, Nil)) {
@@ -481,7 +472,7 @@ abstract class Erasure extends InfoTransform
     def computeAndEnter(): Unit = {
       while (opc.hasNext) {
         if (enteringExplicitOuter(!opc.low.isDeferred))
-          checkPair(opc.currentPair)
+          checkPair(opc. currentPair)
 
         opc.next()
       }
@@ -497,7 +488,7 @@ abstract class Erasure extends InfoTransform
      *  @param  other    The overridden symbol for which the bridge was generated
      *  @param  bridge   The bridge
      */
-    def checkBridgeOverrides(member: Symbol, other: Symbol, bridge: Symbol): scala.collection.Seq[(Position, String)] = {
+    def checkBridgeOverrides(member: Symbol, other: Symbol, bridge: Symbol): Seq[(Position, String)] = {
       def fulldef(sym: Symbol) =
         if (sym == NoSymbol) sym.toString
         else s"$sym: ${sym.tpe} in ${sym.owner}"
@@ -539,7 +530,7 @@ abstract class Erasure extends InfoTransform
     /** TODO - work through this logic with a fine-toothed comb, incorporating
      *  into SymbolPairs where appropriate.
      */
-    def checkPair(pair: SymbolPair): Unit = {
+    def checkPair(pair: SymbolPair) {
       import pair._
       val member = low
       val other  = high
@@ -595,7 +586,7 @@ abstract class Erasure extends InfoTransform
       }
     }
 
-    protected def addBridge(bridge: Symbol, member: Symbol, other: Symbol): Unit = {} // hook for GenerateBridges
+    protected def addBridge(bridge: Symbol, member: Symbol, other: Symbol) {} // hook for GenerateBridges
   }
 
   class GenerateBridges(unit: CompilationUnit, root: Symbol) extends EnterBridges(unit, root) {
@@ -646,7 +637,7 @@ abstract class Erasure extends InfoTransform
         case MethodType(Nil, FoldableConstantType(c)) => Literal(c)
         case _                                =>
           val sel: Tree    = Select(This(root), member)
-          val bridgingCall = bridge.paramss.foldLeft(sel)((fun, vparams) => Apply(fun, vparams map Ident))
+          val bridgingCall = (sel /: bridge.paramss)((fun, vparams) => Apply(fun, vparams map Ident))
 
           maybeWrap(bridgingCall)
       }
@@ -691,7 +682,7 @@ abstract class Erasure extends InfoTransform
             else {
               val untyped =
 //                util.trace("new asinstanceof test") {
-                  gen.evalOnce(qual1, context.owner, fresh) { qual =>
+                  gen.evalOnce(qual1, context.owner, context.unit) { qual =>
                     If(Apply(Select(qual(), nme.eq), List(Literal(Constant(null)) setType NullTpe)),
                        Literal(Constant(null)) setType targ.tpe,
                        unbox(qual(), targ.tpe))
@@ -834,9 +825,8 @@ abstract class Erasure extends InfoTransform
         case Ident(_) | Select(_, _) =>
           if (tree1.symbol.isOverloaded) {
             val first = tree1.symbol.alternatives.head
-            val firstTpe = first.tpe
             val sym1 = tree1.symbol.filter {
-              alt => alt == first || !(firstTpe looselyMatches alt.tpe)
+              alt => alt == first || !(first.tpe looselyMatches alt.tpe)
             }
             if (tree.symbol ne sym1) {
               tree1 setSymbol sym1 setType sym1.tpe
@@ -853,7 +843,7 @@ abstract class Erasure extends InfoTransform
   class ErasureTransformer(unit: CompilationUnit) extends Transformer {
     import overridingPairs.Cursor
 
-    private def doubleDefError(pair: SymbolPair): Unit = {
+    private def doubleDefError(pair: SymbolPair) {
       import pair._
 
       if (!pair.isErroneous) {
@@ -878,7 +868,7 @@ abstract class Erasure extends InfoTransform
       exitingPostErasure(sym1.info =:= sym2.info) && !sym1.isMacro && !sym2.isMacro
 
     /** TODO - adapt SymbolPairs so it can be used here. */
-    private def checkNoDeclaredDoubleDefs(base: Symbol): Unit = {
+    private def checkNoDeclaredDoubleDefs(base: Symbol) {
       val decls = base.info.decls
 
       // scala/bug#8010 force infos, otherwise makeNotPrivate in ExplicitOuter info transformer can trigger
@@ -926,7 +916,7 @@ abstract class Erasure extends InfoTransform
      *  - A template inherits two members `m` with different types,
      *    but their erased types are the same.
      */
-    private def checkNoDoubleDefs(root: Symbol): Unit = {
+    private def checkNoDoubleDefs(root: Symbol) {
       checkNoDeclaredDoubleDefs(root)
       def isErasureDoubleDef(pair: SymbolPair) = {
         import pair._
@@ -1053,8 +1043,8 @@ abstract class Erasure extends InfoTransform
               targ.tpe match {
                 case SingletonInstanceCheck(cmpOp, cmpArg) =>
                   atPos(tree.pos) { Apply(Select(cmpArg, cmpOp), List(qual)) }
-                case RefinedType(parents, decls) if (parents.lengthIs >= 2) =>
-                  gen.evalOnce(qual, currentOwner, localTyper.fresh) { q =>
+                case RefinedType(parents, decls) if (parents.length >= 2) =>
+                  gen.evalOnce(qual, currentOwner, unit) { q =>
                     // Optimization: don't generate isInstanceOf tests if the static type
                     // conforms, because it always succeeds.  (Or at least it had better.)
                     // At this writing the pattern matcher generates some instance tests
@@ -1107,7 +1097,7 @@ abstract class Erasure extends InfoTransform
 
             global.typer.typedPos(tree.pos) {
               if (level == 1) isArrayTest(qual)
-              else gen.evalOnce(qual, currentOwner, localTyper.fresh) { qual1 =>
+              else gen.evalOnce(qual, currentOwner, unit) { qual1 =>
                 gen.mkAnd(
                   gen.mkMethodCall(
                     qual1(),
@@ -1284,15 +1274,20 @@ abstract class Erasure extends InfoTransform
           Match(Typed(selector, TypeTree(selector.tpe)), cases)
 
         case Literal(ct) =>
-          // We remove the original tree attachments in pre-erasure to free up memory
+          // We remove the original tree attachments in pre-easure to free up memory
           val cleanLiteral = tree.removeAttachment[OriginalTreeAttachment]
 
           if (ct.tag == ClazzTag && ct.typeValue.typeSymbol != definitions.UnitClass) {
-            val typeValue = ct.typeValue.dealiasWiden
-            val erased = erasure(typeValue.typeSymbol) applyInArray typeValue
-
+            val erased = ct.typeValue.dealiasWiden match {
+              case tr @ TypeRef(_, clazz, _) if clazz.isDerivedValueClass => scalaErasure.eraseNormalClassRef(tr)
+              case tpe => specialScalaErasure(tpe)
+            }
             treeCopy.Literal(cleanLiteral, Constant(erased))
-          } else cleanLiteral
+          } else if (ct.isSymbol)
+            atPos(tree.pos) {
+              gen.mkMethodCall(definitions.Symbol_apply, List(Literal(Constant(ct.scalaSymbolValue.name))))
+            }
+          else cleanLiteral
 
         case ClassDef(_,_,_,_) =>
           debuglog("defs of " + tree.symbol + " = " + tree.symbol.info.decls)
@@ -1375,7 +1370,7 @@ abstract class Erasure extends InfoTransform
     }
   }
 
-  final def resolveAnonymousBridgeClash(sym: Symbol, bridge: Symbol): Unit = {
+  final def resolveAnonymousBridgeClash(sym: Symbol, bridge: Symbol) {
     // TODO reinstate this after Delambdafy generates anonymous classes that meet this requirement.
     // require(sym.owner.isAnonymousClass, sym.owner)
     log(s"Expanding name of ${sym.debugLocationString} as it clashes with bridge. Renaming deemed safe because the owner is anonymous.")

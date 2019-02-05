@@ -14,8 +14,7 @@ class ZipAndJarFileLookupFactoryTest {
     Files.delete(f)
     val g = new scala.tools.nsc.Global(new scala.tools.nsc.Settings())
     assert(!g.settings.YdisableFlatCpCaching.value) // we're testing with our JAR metadata caching enabled.
-    val closeableRegistry = new CloseableRegistry
-    def createCp = ZipAndJarClassPathFactory.create(AbstractFile.getFile(f.toFile), g.settings, closeableRegistry)
+    def createCp = ZipAndJarClassPathFactory.create(AbstractFile.getFile(f.toFile), g.settings)
     try {
       createZip(f, Array(), "p1/C.class")
       createZip(f, Array(), "p2/X.class")
@@ -42,10 +41,7 @@ class ZipAndJarFileLookupFactoryTest {
       // And that instance should see D, not C, in package p1.
       assert(cp3.findClass("p1.C").isEmpty)
       assert(cp3.findClass("p1.D").isDefined)
-    } finally {
-      Files.delete(f)
-      closeableRegistry.close()
-    }
+    } finally Files.delete(f)
   }
 
   def createZip(zipLocation: Path, content: Array[Byte], internalPath: String): Unit = {

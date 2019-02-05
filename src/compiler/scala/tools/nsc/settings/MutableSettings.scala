@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
-
 // $Id$
 
 package scala.tools
@@ -17,9 +9,9 @@ package nsc
 package settings
 
 import io.{ AbstractFile, Jar, Path, PlainFile, VirtualDirectory }
-import scala.collection.mutable.Clearable
+import scala.collection.generic.Clearable
 import scala.io.Source
-import scala.reflect.internal.util.{ SomeOfNil, StringOps }
+import scala.reflect.internal.util.StringOps
 import scala.reflect.{ ClassTag, classTag }
 
 /** A mutable Settings object.
@@ -27,7 +19,8 @@ import scala.reflect.{ ClassTag, classTag }
 class MutableSettings(val errorFn: String => Unit)
               extends scala.reflect.internal.settings.MutableSettings
                  with AbsSettings
-                 with ScalaSettings {
+                 with ScalaSettings
+                 with Mutable {
   type ResultOfTryToSet = List[String]
 
   def withErrorFn(errorFn: String => Unit): MutableSettings = {
@@ -36,7 +29,7 @@ class MutableSettings(val errorFn: String => Unit)
     settings
   }
 
-  def copyInto(settings: MutableSettings): Unit = {
+  def copyInto(settings: MutableSettings) {
     allSettings foreach { thisSetting =>
       val otherSetting = settings.allSettings find { _.name == thisSetting.name }
       otherSetting foreach { otherSetting =>
@@ -134,7 +127,7 @@ class MutableSettings(val errorFn: String => Unit)
 
     // -Xfoo: clears Clearables
     def clearIfExists(cmd: String): Option[List[String]] = lookupSetting(cmd) match {
-      case Some(c: Clearable) => c.clear() ; SomeOfNil
+      case Some(c: Clearable) => c.clear() ; Some(Nil)
       case Some(s)            => s.errorAndValue(s"Missing argument to $cmd", None)
       case None               => None
     }
@@ -203,7 +196,7 @@ class MutableSettings(val errorFn: String => Unit)
   * The class loader for `T` should provide resources `app.class.path`
   * and `boot.class.path`.  These resources should contain the application
   * and boot classpaths in the same form as would be passed on the command line.*/
-  def embeddedDefaults(loader: ClassLoader): Unit = {
+  def embeddedDefaults(loader: ClassLoader) {
     explicitParentLoader = Option(loader) // for the Interpreter parentClassLoader
     getClasspath("app", loader) foreach { classpath.value = _ }
     getClasspath("boot", loader) foreach { bootclasspath append _ }
@@ -288,7 +281,7 @@ class MutableSettings(val errorFn: String => Unit)
     /** Set the single output directory. From now on, all files will
      *  be dumped in there, regardless of previous calls to 'add'.
      */
-    def setSingleOutput(outDir: String): Unit = {
+    def setSingleOutput(outDir: String) {
       val dst = AbstractFile.getDirectory(outDir)
       setSingleOutput(checkDir(dst, outDir, allowJar = true))
     }
@@ -298,11 +291,11 @@ class MutableSettings(val errorFn: String => Unit)
     /** Set the single output directory. From now on, all files will
      *  be dumped in there, regardless of previous calls to 'add'.
      */
-    def setSingleOutput(dir: AbstractFile): Unit = {
+    def setSingleOutput(dir: AbstractFile) {
       singleOutDir = Some(dir)
     }
 
-    def add(src: AbstractFile, dst: AbstractFile): Unit = {
+    def add(src: AbstractFile, dst: AbstractFile) {
       singleOutDir = None
       outputDirs ::= ((src, dst))
     }
@@ -316,13 +309,16 @@ class MutableSettings(val errorFn: String => Unit)
       def isBelow(srcDir: AbstractFile, outDir: AbstractFile) =
         src.path.startsWith(srcDir.path)
 
-      singleOutDir.getOrElse(outputs.find((isBelow _).tupled) match {
-          case Some((_, d)) => d
-          case _ =>
-            throw new FatalError("Could not find an output directory for "
-                                 + src.path + " in " + outputs)
-        }
-      )
+      singleOutDir match {
+        case Some(d) => d
+        case None =>
+          (outputs find (isBelow _).tupled) match {
+            case Some((_, d)) => d
+            case _ =>
+              throw new FatalError("Could not find an output directory for "
+                                   + src.path + " in " + outputs)
+          }
+      }
     }
 
     /** Return the source file path(s) which correspond to the given
@@ -364,19 +360,19 @@ class MutableSettings(val errorFn: String => Unit)
   /** A base class for settings of all types.
    *  Subclasses each define a `value` field of the appropriate type.
    */
-  abstract class Setting(val name: String, val helpDescription: String) extends AbsSetting with SettingValue {
+  abstract class Setting(val name: String, val helpDescription: String) extends AbsSetting with SettingValue with Mutable {
     /** Will be called after this Setting is set for any extra work. */
-    private[this] var _postSetHook: this.type => Unit = (x: this.type) => ()
+    private var _postSetHook: this.type => Unit = (x: this.type) => ()
     override def postSetHook(): Unit = _postSetHook(this)
     def withPostSetHook(f: this.type => Unit): this.type = { _postSetHook = f ; this }
 
     /** The syntax defining this setting in a help string */
-    private[this] var _helpSyntax = name
+    private var _helpSyntax = name
     override def helpSyntax: String = _helpSyntax
     def withHelpSyntax(s: String): this.type    = { _helpSyntax = s ; this }
 
     /** Abbreviations for this setting */
-    private[this] var _abbreviations: List[String] = Nil
+    private var _abbreviations: List[String] = Nil
     override def abbreviations = _abbreviations
     def withAbbreviation(s: String): this.type  = { _abbreviations ++= List(s) ; this }
 
@@ -385,7 +381,7 @@ class MutableSettings(val errorFn: String => Unit)
     override def dependencies = dependency.toList
     def dependsOn(s: Setting, value: String): this.type = { dependency = Some((s, value)); this }
 
-    private[this] var _deprecationMessage: Option[String] = None
+    private var _deprecationMessage: Option[String] = None
     override def deprecationMessage = _deprecationMessage
     def withDeprecationMessage(msg: String): this.type = { _deprecationMessage = Some(msg) ; this }
   }
@@ -428,7 +424,12 @@ class MutableSettings(val errorFn: String => Unit)
     // Ensure that the default value is actually valid
     assert(isInputValid(default))
 
-    def parseArgument(x: String): Option[Int] = parser(x) orElse x.toIntOption
+    def parseArgument(x: String): Option[Int] = {
+      parser(x) orElse {
+        try   { Some(x.toInt) }
+        catch { case _: NumberFormatException => None }
+      }
+    }
 
     def errorMsg() = errorFn(s"invalid setting for $name $getValidText")
 
@@ -457,7 +458,7 @@ class MutableSettings(val errorFn: String => Unit)
 
     def tryToSet(args: List[String]) = { value = true ; Some(args) }
     def unparse: List[String] = if (value) List(name) else Nil
-    override def tryToSetFromPropertyValue(s : String): Unit = { // used from ide
+    override def tryToSetFromPropertyValue(s : String) { // used from ide
       value = s.equalsIgnoreCase("true")
     }
     override def tryToSetColon(args: List[String]) = args match {
@@ -465,10 +466,10 @@ class MutableSettings(val errorFn: String => Unit)
       case List(x) =>
         if (x.equalsIgnoreCase("true")) {
           value = true
-          SomeOfNil
+          Some(Nil)
         } else if (x.equalsIgnoreCase("false")) {
           value = false
-          SomeOfNil
+          Some(Nil)
         } else errorAndValue(s"'$x' is not a valid choice for '$name'", None)
       case _       => errorAndValue(s"'$name' accepts only one boolean value", None)
     }
@@ -532,7 +533,7 @@ class MutableSettings(val errorFn: String => Unit)
     name: String,
     val arg: String,
     descr: String,
-    val initial: ScalaVersion,
+    initial: ScalaVersion,
     default: Option[ScalaVersion])
   extends Setting(name, descr) {
     type T = ScalaVersion
@@ -583,7 +584,7 @@ class MutableSettings(val errorFn: String => Unit)
     default: String)
     extends StringSetting("-d", "directory|jar", "destination for generated classfiles.", default, None) {
       value = default
-      override def value_=(str: String): Unit = {
+      override def value_=(str: String) {
         super.value_=(str)
         try outputDirs.setSingleOutput(str)
         catch { case FatalError(msg) => errorFn(msg) }
@@ -633,11 +634,11 @@ class MutableSettings(val errorFn: String => Unit)
    */
   class MultiChoiceSetting[E <: MultiChoiceEnumeration] private[nsc](
     name: String,
-    val helpArg: String,
+    helpArg: String,
     descr: String,
     val domain: E,
     val default: Option[List[String]]
-  ) extends Setting(name, s"$descr: `_` for all, `$name:help` to list choices.") with Clearable {
+  ) extends Setting(name, s"$descr: `_' for all, `$name:help' to list choices.") with Clearable {
 
     withHelpSyntax(s"$name:<_,$helpArg,-$helpArg>")
 
@@ -840,14 +841,14 @@ class MutableSettings(val errorFn: String => Unit)
    */
   class ChoiceSetting private[nsc](
     name: String,
-    val helpArg: String,
+    helpArg: String,
     descr: String,
     override val choices: List[String],
     val default: String,
     val choicesHelp: List[String])
   extends Setting(name,
     if (choicesHelp.isEmpty) s"$descr Choices: ${choices.mkString("(", ",", ")")}, default: $default."
-    else s"$descr Default: `$default`, `help` to list choices.") {
+    else s"$descr Default: `$default', `help' to list choices.") {
     type T = String
     protected var v: T = default
     def indexOfChoice: Int = choices indexOf value
@@ -869,8 +870,8 @@ class MutableSettings(val errorFn: String => Unit)
 
     override def tryToSetColon(args: List[String]) = args match {
       case Nil                            => errorAndValue(usageErrorMessage, None)
-      case List("help")                   => sawHelp = true; SomeOfNil
-      case List(x) if choices contains x  => value = x ; SomeOfNil
+      case List("help")                   => sawHelp = true; Some(Nil)
+      case List(x) if choices contains x  => value = x ; Some(Nil)
       case List(x)                        => errorAndValue("'" + x + "' is not a valid choice for '" + name + "'", None)
       case xs                             => errorAndValue("'" + name + "' does not accept multiple arguments.", None)
     }
@@ -895,7 +896,7 @@ class MutableSettings(val errorFn: String => Unit)
   class PhasesSetting private[nsc](
     name: String,
     descr: String,
-    val default: String
+    default: String
   ) extends Setting(name, mkPhasesHelp(descr, default)) with Clearable {
     private[nsc] def this(name: String, descr: String) = this(name, descr, "")
 
@@ -927,15 +928,13 @@ class MutableSettings(val errorFn: String => Unit)
 
     def tryToSet(args: List[String]) =
       if (default == "") errorAndValue("missing phase", None)
-      else tryToSetColon(splitDefault) map (_ => args)
-
-    private def splitDefault = default.split(',').toList
+      else tryToSetColon(List(default)) map (_ => args)
 
     override def tryToSetColon(args: List[String]) = try {
       args match {
         case Nil  => if (default == "") errorAndValue("missing phase", None)
-                     else tryToSetColon(splitDefault)
-        case xs   => value = (value ++ xs).distinct.sorted ; SomeOfNil
+                     else tryToSetColon(List(default))
+        case xs   => value = (value ++ xs).distinct.sorted ; Some(Nil)
       }
     } catch { case _: NumberFormatException => None }
 

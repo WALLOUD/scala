@@ -1,9 +1,9 @@
 class C {
-  def f(x: Int): Unit = {}
+  def f(x: Int) {}
 }
 
 class D extends C {
-  def f(x: Any): Unit = {}
+  def f(x: Any) {}
 }
 
 object Test {

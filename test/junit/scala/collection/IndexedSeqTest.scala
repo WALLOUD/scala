@@ -1,9 +1,14 @@
 package scala.collection
 
 import org.junit.Test
-import org.junit.Assert._
+import org.junit.Ignore
+import org.junit.Assert.{assertEquals, _}
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+
+// with the Ant JUnit runner, it's necessary to @Ignore the abstract
+// classes here, or JUnit tries to instantiate them.  the annotations
+// can be removed when this is merged forward (TODO 2.12.x)
 
 /**
   * base class for testing common methods on a various implementations
@@ -12,6 +17,7 @@ import org.junit.runners.JUnit4
   * @tparam E the element type
   */
 @RunWith(classOf[JUnit4])
+@Ignore
 abstract class IndexedTest[T, E] {
 
   protected def size = 10
@@ -37,12 +43,6 @@ abstract class IndexedTest[T, E] {
     for (i <- 0 until size) {
       assertEquals(s" at index $i", expectedValueAtIndex(i), get(test, i))
     }
-  }
-
-  /** check that lengthCompare compares values correctly */
-  @Test def checkLengthCompare(): Unit = {
-    val test = underTest(size)
-    assert(lengthCompare(test, Int.MinValue) > 0)
   }
 
   /**
@@ -172,7 +172,6 @@ abstract class IndexedTest[T, E] {
   @Test def checkTakeTooBig: Unit = {
     val orig = underTest(size)
     val e = take(orig, 0)
-    assertNotNull(e)
     for (len <- List(size + 1, size + 10, Int.MaxValue)) {
       val all = take(orig, len)
       assertEquals(s"len $len", size, length(all))
@@ -224,7 +223,7 @@ abstract class IndexedTest[T, E] {
     }
   }
 
-  protected def intercept[EX <: Exception : Manifest](fn: => Any): Unit = {
+  protected def intercept[EX <: Exception : Manifest](fn: => Any) {
     try {
       val res = fn
       fail(s"expected exception was not thrown: $res")
@@ -237,8 +236,6 @@ abstract class IndexedTest[T, E] {
   //accessors
   //the length of underTest
   def length(underTest: T): Int
-
-  def lengthCompare(underTest: T, len: Int): Int
 
   //the value at index i of underTest
   def get(underTest: T, i: Int): E
@@ -264,7 +261,7 @@ abstract class IndexedTest[T, E] {
 
   //helpers
   //delegate equals check for support arrays
-  def doAssertEquals(txt: String, expected: T, actual: T): Unit
+  def doAssertEquals(txt: String, expected: T, actual: T)
 
 }
 package IndexedTestImpl {
@@ -278,7 +275,7 @@ package IndexedTestImpl {
   import java.lang.{Double => jlDouble}
   import java.lang.{Character => jlChar}
 
-  import scala.collection.immutable.{StringOps, WrappedString}
+  import scala.collection.immutable.{StringLike, StringOps, WrappedString}
   import scala.collection.mutable
   import scala.runtime.BoxedUnit
   trait DataProvider[E] {
@@ -320,12 +317,11 @@ package IndexedTestImpl {
     def toType(n: Int)= if ((n & 0) == 0) null else BoxedUnit.UNIT
   }
 
+  @Ignore
   abstract class ArrayTest[E] (
                                //the object or primitive type of the array
                                val TYPE: Class[_]) extends IndexedTest[Array[E], E]{
     override final def length(underTest: Array[E]) = underTest.length
-
-    override final def lengthCompare(underTest: Array[E], len: Int): Int = underTest.lengthCompare(len)
 
     override def get(underTest: Array[E], i: Int) = underTest(i)
 
@@ -352,19 +348,19 @@ package IndexedTestImpl {
     }
   }
 
-  abstract class ArraySeqTest[E](
+
+  @Ignore
+  abstract class WrappedArrayTest[E](
                                       //the object or primitive type of the array
-                                      val TYPE: Class[_]) extends IndexedTest[mutable.ArraySeq[E], E]  with DataProvider[E]{
-    import mutable.ArraySeq
-    override final def length(underTest: ArraySeq[E]) = underTest.length
+                                      val TYPE: Class[_]) extends IndexedTest[mutable.WrappedArray[E], E]  with DataProvider[E]{
+    import mutable.WrappedArray
+    override final def length(underTest: WrappedArray[E]) = underTest.length
 
-    override final def lengthCompare(underTest: ArraySeq[E], len: Int): Int = underTest.lengthCompare(len)
+    override def get(underTest: WrappedArray[E], i: Int) = underTest(i)
 
-    override def get(underTest: ArraySeq[E], i: Int) = underTest(i)
+    override def slice(underTest: WrappedArray[E], from: Int, to: Int) = underTest.slice(from, to)
 
-    override def slice(underTest: ArraySeq[E], from: Int, to: Int) = underTest.slice(from, to)
-
-    override def take(underTest: ArraySeq[E], size: Int) = underTest.take(size)
+    override def take(underTest: WrappedArray[E], size: Int) = underTest.take(size)
 
     override def isEmptyConstant = false
 
@@ -372,25 +368,24 @@ package IndexedTestImpl {
 
     override def isTakeAllSame = false
 
-    override def doAssertEquals(txt: String, expected: ArraySeq[E], actual: ArraySeq[E]): Unit = {
+    override def doAssertEquals(txt: String, expected: WrappedArray[E], actual: WrappedArray[E]): Unit = {
       assertEquals(txt, expected.mkString("'"), actual.mkString("'"))
     }
 
-    override def underTest(size: Int): ArraySeq[E] = {
+    override def underTest(size: Int): WrappedArray[E] = {
       val res = jlArray.newInstance(TYPE, size)
       for (i <- 0 until size) {
         jlArray.set(res, i, expectedValueAtIndex(i))
       }
-      ArraySeq.make(res.asInstanceOf[Array[E]])
+      WrappedArray.make(res.asInstanceOf[Array[E]])
     }
   }
 
   //construct the data using java as much as possible to avoid invalidating the test
 
+  @Ignore
   abstract class MutableIndexedSeqTest[T <: mutable.Seq[E], E] extends IndexedTest[T, E]   with DataProvider[E]{
     override final def length(underTest: T) = underTest.length
-
-    override final def lengthCompare(underTest: T, len: Int): Int = underTest.lengthCompare(len)
 
     override def get(underTest: T, i: Int) = underTest(i)
 
@@ -418,11 +413,9 @@ package IndexedTestImpl {
     }
 
   }
-
-  abstract class ImmutableIndexedSeqTest[T <: SeqOps[E, Seq, T], E] extends IndexedTest[T, E]   with DataProvider[E] {
+  @Ignore
+  abstract class ImmutableIndexedSeqTest[T <: SeqLike[E, T], E] extends IndexedTest[T, E]   with DataProvider[E] {
     override final def length(underTest: T) = underTest.length
-
-    override final def lengthCompare(underTest: T, len: Int): Int = underTest.lengthCompare(len)
 
     override def get(underTest: T, i: Int) = underTest(i)
 
@@ -441,11 +434,9 @@ package IndexedTestImpl {
     }
 
   }
-
+  @Ignore
   abstract class StringOpsBaseTest extends IndexedTest[StringOps, Char] with DataProvider[Char]  {
-    override final def length(underTest: StringOps) = underTest.size
-
-    override final def lengthCompare(underTest: StringOps, len: Int): Int = underTest.lengthCompare(len)
+    override final def length(underTest: StringOps) = underTest.length
 
     override def get(underTest: StringOps, i: Int) = underTest(i)
 
@@ -484,25 +475,25 @@ package IndexedTestImpl {
   }
   class RefArrayTest extends ArrayTest[String](classOf[String]) with StringTestData
 
-  class BooleanArraySeqTest extends ArraySeqTest[Boolean](jlBoolean.TYPE) with BooleanTestData
-  class ByteArraySeqTest extends ArraySeqTest[Byte](jlByte.TYPE) with ByteTestData
-  class ShortArraySeqTest extends ArraySeqTest[Short](jlShort.TYPE) with ShortTestData
-  class IntArraySeqTest extends ArraySeqTest[Int](jlInt.TYPE) with IntTestData
-  class LongArraySeqTest extends ArraySeqTest[Long](jlLong.TYPE) with LongTestData
-  class DoubleArraySeqTest extends ArraySeqTest[Double](jlDouble.TYPE) with DoubleTestData
-  class FloatArraySeqTest extends ArraySeqTest[Float](jlFloat.TYPE) with FloatTestData
-  class CharArraySeqTest extends ArraySeqTest[Char](jlChar.TYPE) with CharTestData
-  class UnitArraySeqTest extends ArraySeqTest[BoxedUnit](null) with UnitTestData {
-    import mutable.ArraySeq
-    override def underTest(size: Int): ArraySeq[BoxedUnit] = {
+  class BooleanWrappedArrayTest extends WrappedArrayTest[Boolean](jlBoolean.TYPE) with BooleanTestData
+  class ByteWrappedArrayTest extends WrappedArrayTest[Byte](jlByte.TYPE) with ByteTestData
+  class ShortWrappedArrayTest extends WrappedArrayTest[Short](jlShort.TYPE) with ShortTestData
+  class IntWrappedArrayTest extends WrappedArrayTest[Int](jlInt.TYPE) with IntTestData
+  class LongWrappedArrayTest extends WrappedArrayTest[Long](jlLong.TYPE) with LongTestData
+  class DoubleWrappedArrayTest extends WrappedArrayTest[Double](jlDouble.TYPE) with DoubleTestData
+  class FloatWrappedArrayTest extends WrappedArrayTest[Float](jlFloat.TYPE) with FloatTestData
+  class CharWrappedArrayTest extends WrappedArrayTest[Char](jlChar.TYPE) with CharTestData
+  class UnitWrappedArrayTest extends WrappedArrayTest[BoxedUnit](null) with UnitTestData {
+    import mutable.WrappedArray
+    override def underTest(size: Int): WrappedArray[BoxedUnit] = {
       val res = new Array[Unit](size)
       for (i <- 0 until size) {
         jlArray.set(res, i, expectedValueAtIndex(i))
       }
-      ArraySeq.make(res).asInstanceOf[ArraySeq[BoxedUnit]]
+      WrappedArray.make(res.asInstanceOf[Array[Unit]])
     }
   }
-  class RefArraySeqTest extends ArraySeqTest[String](classOf[String]) with StringTestData
+  class RefWrappedArrayTest extends WrappedArrayTest[String](classOf[String]) with StringTestData
 
   class ListBufferTest extends MutableIndexedSeqTest[mutable.ListBuffer[String], String]  with StringTestData {
     import mutable.ListBuffer
@@ -513,7 +504,7 @@ package IndexedTestImpl {
       res
     }
   }
-  /*class ArraySeqTest extends MutableIndexedSeqTest[mutable.ArraySeq[String], String]  with StringTestData {
+  class ArraySeqTest extends MutableIndexedSeqTest[mutable.ArraySeq[String], String]  with StringTestData {
     import mutable.ArraySeq
     override def createEmpty(size: Int): ArraySeq[String] = {
       val res = new ArraySeq[String](size)
@@ -521,7 +512,7 @@ package IndexedTestImpl {
         res (i) = expectedValueAtIndex(i)
       res
     }
-  }*/
+  }
   class ArrayBufferTest extends MutableIndexedSeqTest[mutable.ArrayBuffer[String], String]  with StringTestData {
     import mutable.ArrayBuffer
     override def createEmpty(size: Int): ArrayBuffer[String] = {
@@ -548,7 +539,7 @@ package IndexedTestImpl {
     override def createEmpty(size: Int): StringBuilder = new StringBuilder(size)
 
     override protected def underTest(size: Int): StringBuilder = {
-      val res = createEmpty(size)
+      var res = createEmpty(size)
       for (i <- 0 until size)
         res += expectedValueAtIndex(i)
       res
@@ -557,7 +548,7 @@ package IndexedTestImpl {
   class StringOpsTest extends StringOpsBaseTest with CharTestData {
 
     override protected def underTest(size: Int): StringOps = {
-      val res = new StringBuilder(size)
+      var res = new StringBuilder(size)
       for (i <- 0 until size)
         res += expectedValueAtIndex(i)
       res.toString
@@ -568,7 +559,7 @@ package IndexedTestImpl {
     override def isTakeAllSame: Boolean = false
 
     override protected def underTest(size: Int):  WrappedString = {
-      val res = new StringBuilder(size)
+      var res = new StringBuilder(size)
       for (i <- 0 until size)
         res += expectedValueAtIndex(i)
       new WrappedString(res.toString)
@@ -577,7 +568,7 @@ package IndexedTestImpl {
   class VectorTest extends ImmutableIndexedSeqTest[Vector[String], String]  with StringTestData {
 
     override protected def underTest(size: Int): Vector[String] = {
-      val res = Vector.newBuilder[String]
+      var res = Vector.newBuilder[String]
       for (i <- 0 until size)
         res += expectedValueAtIndex(i)
       res.result()

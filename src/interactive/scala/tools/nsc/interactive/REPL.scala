@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2009-2013 Typesafe/Scala Solutions and LAMP/EPFL
+ * @author Martin Odersky
  */
-
 package scala
 package tools.nsc
 package interactive
@@ -30,12 +22,12 @@ object REPL {
 
   var reporter: ConsoleReporter = _
 
-  private def replError(msg: String): Unit = {
+  private def replError(msg: String) {
     reporter.error(/*new Position */FakePos("scalac"),
                    msg + "\n  scalac -help  gives more information")
   }
 
-  def process(args: Array[String]): Unit = {
+  def process(args: Array[String]) {
     val settings = new Settings(replError)
     reporter = new ConsoleReporter(settings)
     val command = new CompilerCommand(args.toList, settings)
@@ -64,12 +56,12 @@ object REPL {
     }
   }
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     process(args)
     System.exit(if (reporter.hasErrors) 1 else 0)
   }
 
-  def loop(action: (String) => Unit): Unit = {
+  def loop(action: (String) => Unit) {
     Console.print(prompt)
     try {
       val line = scala.io.StdIn.readLine()
@@ -89,7 +81,7 @@ object REPL {
    *  typeat file off1 off2?
    *  complete file off1 off2?
    */
-  def run(comp: Global): Unit = {
+  def run(comp: Global) {
     val reloadResult = new Response[Unit]
     val typeatResult = new Response[comp.Tree]
     val completeResult = new Response[List[comp.Member]]
@@ -101,17 +93,17 @@ object REPL {
       comp.rangePos(source, off1.toInt, off1.toInt, off2.toInt)
     }
 
-    def doTypeAt(pos: Position): Unit = {
+    def doTypeAt(pos: Position) {
       comp.askTypeAt(pos, typeatResult)
       show(typeatResult)
     }
 
-    def doComplete(pos: Position): Unit = {
+    def doComplete(pos: Position) {
       comp.askTypeCompletion(pos, completeResult)
       show(completeResult)
     }
 
-    def doStructure(file: String): Unit = {
+    def doStructure(file: String) {
       comp.askParsedEntered(toSourceFile(file), keepLoaded = false, structureResult)
       show(structureResult)
     }

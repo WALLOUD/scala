@@ -1,4 +1,3 @@
-// scalac: -Xsource:2.13
 case class Foo[F[_]]()
 
 case class APair[F[_], G[_], A](f: F[A], g: G[A])

@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2009-2013 Typesafe/Scala Solutions and LAMP/EPFL
+ * @author Martin Odersky
  */
-
 package scala.tools.nsc
 package interactive
 package tests.core
@@ -53,7 +45,7 @@ trait AskParse extends AskCommand {
    *  (else commands such as `AskTypeCompletionAt` may fail simply because
    *  the source's AST is not yet loaded).
    */
-  def askParse(sources: Seq[SourceFile]): Unit = {
+  def askParse(sources: Seq[SourceFile]) {
     val responses = sources map (askParse(_))
     responses.foreach(_.get) // force source files parsing
   }

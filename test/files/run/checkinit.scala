@@ -1,5 +1,3 @@
-// scalac: -Xcheckinit
-//
 class C(val x: AnyRef, val y: AnyRef)
 class D(val x: AnyRef, val y: AnyRef) {
   val z: AnyRef = ""

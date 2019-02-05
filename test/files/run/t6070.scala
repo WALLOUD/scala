@@ -27,7 +27,7 @@ object Test extends App {
       println(b.size({ mutate(); b.x }))
   }
 
-  def mutate(): Unit = {
+  def mutate() {
     m.bomb = new IntBomb
   }
 

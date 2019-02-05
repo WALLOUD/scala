@@ -1,5 +1,3 @@
-// scalac: -opt:l:none
-//
 import scala.tools.partest.BytecodeTest
 import scala.tools.asm
 import scala.tools.asm.util._
@@ -10,7 +8,7 @@ object Test extends BytecodeTest {
   val nullChecks = Set(asm.Opcodes.IFNONNULL, asm.Opcodes.IFNULL)
 
   def show: Unit = {
-    def test(methodName: String, expected: Int): Unit = {
+    def test(methodName: String, expected: Int) {
       val classNode = loadClassNode("Lean")
       val methodNode = getMethod(classNode, methodName)
       val got = countNullChecks(methodNode.instructions)
@@ -26,15 +24,15 @@ object Test extends BytecodeTest {
 }
 
 class Lean {
-  def string: Unit = {
+  def string {
     "" == toString
   }
 
-  def module: Unit = {
+  def module {
     Nil == (toString: Any)
   }
 
-  def moduleIndirect: Unit = {
+  def moduleIndirect {
     val n: Nil.type = null
     n == (toString: Any) // still need null checks here.
   }

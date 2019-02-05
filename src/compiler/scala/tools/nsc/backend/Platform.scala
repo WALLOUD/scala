@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
@@ -26,7 +19,7 @@ trait Platform {
   private[nsc] def classPath: ClassPath
 
   /** Update classpath with a substitution that maps entries to entries */
-  def updateClassPath(subst: Map[ClassPath, ClassPath]): Unit
+  def updateClassPath(subst: Map[ClassPath, ClassPath])
 
   /** Any platform-specific phases. */
   def platformPhases: List[SubComponent]

@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2006-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://www.scala-lang.org/           **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package collection
@@ -42,8 +38,8 @@ private[collection] object Decorators {
   }
 
   /** Generic class containing the `asJavaDictionary` converter method */
-  class AsJavaDictionary[K, V](m : mutable.Map[K, V]) {
+  class AsJavaDictionary[A, B](m : mutable.Map[A, B]) {
     /** Converts a Scala `Map` to a Java `Dictionary` */
-    def asJavaDictionary: ju.Dictionary[K, V] = JavaConverters.asJavaDictionary(m)
+    def asJavaDictionary: ju.Dictionary[A, B] = JavaConverters.asJavaDictionary(m)
   }
 }

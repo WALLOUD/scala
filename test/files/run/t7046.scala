@@ -7,7 +7,7 @@ class E extends C
 
 object Test extends App {
   val c = cm.staticClass("C")
-  println(c.knownDirectSubclasses.toList.map(_.toString).sorted)
+  println(c.knownDirectSubclasses)
   c.info
-  println(c.knownDirectSubclasses.toList.map(_.toString).sorted)
+  println(c.knownDirectSubclasses)
 }

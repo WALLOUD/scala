@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
@@ -51,7 +44,9 @@ trait Imports {
    *  scope twiddling which should be swept away in favor of digging
    *  into the compiler scopes.
    */
-  def sessionWildcards: List[Type] = importHandlers.filter(_.importsWildcard).map(_.targetType).distinct
+  def sessionWildcards: List[Type] = {
+    importHandlers filter (_.importsWildcard) map (_.targetType) distinct
+  }
 
   def languageSymbols        = languageWildcardSyms flatMap membersAtPickler
   def sessionImportedSymbols = importHandlers flatMap (_.importedSymbols)
@@ -137,17 +132,17 @@ trait Imports {
               case ReqAndHandler(_, _: ImportHandler) => referencedNames            // for "import a.b", add "a" to names to be resolved
               case _ => Nil
             }
-            val newWanted = wanted ++ augment diff definedNames.toSet diff importedNames.toSet
+            val newWanted = wanted ++ augment -- definedNames -- importedNames
             rh :: select(rest, newWanted)
         }
       }
 
       /** Flatten the handlers out and pair each with the original request */
-      select(allReqAndHandlers.reverseIterator.map { case (r, h) => ReqAndHandler(r, h) }.toList, wanted).reverse
+      select(allReqAndHandlers reverseMap { case (r, h) => ReqAndHandler(r, h) }, wanted).reverse
     }
 
     // add code for a new object to hold some imports
-    def addWrapper(): Unit = {
+    def addWrapper() {
       code append (request.wrapperDef(iw) + " {\n")
       trailingBraces append "}\n"+ request.postwrap +"\n"
       accessPath append s".$iw"

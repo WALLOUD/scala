@@ -21,5 +21,5 @@ object Macros {
     }
   }
 
-  def foo: Unit = macro impl
+  def foo = macro impl
 }

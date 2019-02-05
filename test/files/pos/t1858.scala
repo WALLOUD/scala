@@ -1,4 +1,4 @@
-import scala.collection.mutable.Stack
+import scala.collection.immutable.Stack
 
 object Test {
 

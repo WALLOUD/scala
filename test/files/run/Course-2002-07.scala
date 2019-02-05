@@ -666,7 +666,7 @@ object MB {
     Console.println("f0(x) = " + f0);
     Console.println;
 
-    def check(n: String, f: Expr, x: Int, e: Int): Unit = {
+    def check(n: String, f: Expr, x: Int, e: Int) {
       val a: Int = f.evaluate(List(("x",x)));
       val s: String = if (a == e) "ok" else "KO(" + e + ")";
       Console.println(n + "(" + x + ") = " + a + " " + s);
@@ -702,7 +702,7 @@ object MB {
 //############################################################################
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     M0.test;
     M1.test;
     M2.test;

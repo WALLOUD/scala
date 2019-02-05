@@ -1,5 +1,3 @@
-// scalac: -deprecation -Xfatal-warnings
-//
 package scala.pack
 
 @deprecatedInheritance

@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
-
 //todo: allow infix type patterns
 
 
@@ -63,7 +55,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
 
     private var lastErrorPos : Int = -1
 
-    protected def skip(): Unit = {
+    protected def skip() {
       var nparens = 0
       var nbraces = 0
       while (true) {
@@ -89,11 +81,11 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
 
     def warning(pos : Int, msg : String) : Unit
     def syntaxError(pos: Int, msg: String) : Unit
-    def syntaxError(msg: String, skipIt: Boolean): Unit = {
+    def syntaxError(msg: String, skipIt: Boolean) {
       syntaxError(in.currentPos, msg, skipIt)
     }
 
-    def syntaxError(pos: Int, msg: String, skipIt: Boolean): Unit = {
+    def syntaxError(pos: Int, msg: String, skipIt: Boolean) {
       if (pos > lastErrorPos) {
         syntaxError(pos, msg)
         // no more errors on this token.
@@ -148,7 +140,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
     // ------------- general parsing ---------------------------
 
     /** skip parent or brace enclosed sequence of things */
-    def skipAhead(): Unit = {
+    def skipAhead() {
       var nparens = 0
       var nbraces = 0
       do {
@@ -170,7 +162,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       } while (in.token != EOF && (nparens > 0 || nbraces > 0))
     }
 
-    def skipTo(tokens: Int*): Unit = {
+    def skipTo(tokens: Int*) {
       while (!(tokens contains in.token) && in.token != EOF) {
         if (in.token == LBRACE) { skipAhead(); accept(RBRACE) }
         else if (in.token == LPAREN) { skipAhead(); accept(RPAREN) }
@@ -195,7 +187,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       pos
     }
 
-    def acceptClosingAngle(): Unit = {
+    def acceptClosingAngle() {
       val closers: PartialFunction[Int, Int] = {
         case GTGTGTEQ => GTGTEQ
         case GTGTGT   => GTGT
@@ -344,7 +336,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
 
     /** Annotation ::= TypeName [`(` AnnotationArgument {`,` AnnotationArgument} `)`]
      */
-    def annotation(): Unit = {
+    def annotation() {
       qualId()
       if (in.token == LPAREN) { skipAhead(); accept(RPAREN) }
       else if (in.token == LBRACE) { skipAhead(); accept(RBRACE) }
@@ -393,10 +385,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
           case VOLATILE =>
             addAnnot(VolatileAttr)
             in.nextToken()
-          case STRICTFP =>
-            addAnnot(ScalaStrictFPAttr)
-            in.nextToken()
-          case SYNCHRONIZED =>
+          case SYNCHRONIZED | STRICTFP =>
             in.nextToken()
           case _ =>
             val privateWithin: TypeName =
@@ -457,7 +446,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
      varDecl(in.currentPos, Modifiers(Flags.JAVA | Flags.PARAM), t, ident().toTermName)
     }
 
-    def optThrows(): Unit = {
+    def optThrows() {
       if (in.token == THROWS) {
         in.nextToken()
         repsep(() => typ(), COMMA)
@@ -673,14 +662,14 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       val lastnameOffset = collectIdents()
       accept(SEMI)
       val names = buf.toList
-      if (names.lengthIs < 2) {
+      if (names.length < 2) {
         syntaxError(pos, "illegal import", skipIt = false)
         List()
       } else {
-        val qual = names.tail.init.foldLeft(Ident(names.head): Tree)(Select(_, _))
+        val qual = ((Ident(names.head): Tree) /: names.tail.init) (Select(_, _))
         val lastname = names.last
         val selector = lastname match {
-          case nme.WILDCARD => ImportSelector.wildAt(lastnameOffset)
+          case nme.WILDCARD => ImportSelector(lastname, lastnameOffset, null, -1)
           case _            => ImportSelector(lastname, lastnameOffset, lastname, lastnameOffset)
         }
         List(atPos(pos)(Import(qual, List(selector))))
@@ -781,7 +770,11 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       val idefs = members.toList ::: (sdefs flatMap forwarders)
       (sdefs, idefs)
     }
-    def annotationParents = Select(javaLangDot(nme.annotation), tpnme.Annotation) :: Nil
+    def annotationParents = List(
+      gen.scalaAnnotationDot(tpnme.Annotation),
+      Select(javaLangDot(nme.annotation), tpnme.Annotation),
+      gen.scalaAnnotationDot(tpnme.StaticAnnotation)
+    )
     def annotationDecl(mods: Modifiers): List[Tree] = {
       accept(AT)
       accept(INTERFACE)
@@ -790,10 +783,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       val (statics, body) = typeBody(AT, name)
       val templ = makeTemplate(annotationParents, body)
       addCompanionObject(statics, atPos(pos) {
-        import Flags._
-        ClassDef(
-          mods | JAVA_ANNOTATION | TRAIT | INTERFACE | ABSTRACT,
-          name, List(), templ)
+        ClassDef(mods | Flags.JAVA_ANNOTATION, name, List(), templ)
       })
     }
 
@@ -806,7 +796,7 @@ trait JavaParsers extends ast.parser.ParsersCommon with JavaScanners {
       accept(LBRACE)
       val buf = new ListBuffer[Tree]
       var enumIsFinal = true
-      def parseEnumConsts(): Unit = {
+      def parseEnumConsts() {
         if (in.token != RBRACE && in.token != SEMI && in.token != EOF) {
           val (const, hasClassBody) = enumConst(enumType)
           buf += const

@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 sealed trait KrafsDescription
 
 abstract class NotWorkingEnum extends Enumeration {
@@ -36,7 +34,7 @@ object Test extends App {
   testGris()
   testWorking()
 
-  def testGris(): Unit = {
+  def testGris() {
     val pipp = NotWorkingTab.b
     pipp match {
       case NotWorkingTab.a => ???
@@ -45,7 +43,7 @@ object Test extends App {
     }
   }
 
-  def testWorking(): Unit = {
+  def testWorking() {
     val stuff = WorkingTab.a
     stuff match {
       case WorkingTab.a =>

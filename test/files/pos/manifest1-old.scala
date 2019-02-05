@@ -1,7 +1,7 @@
 import scala.reflect.Manifest
 
 object Test {
-  def foo[T](x: T)(implicit m: Manifest[T]): Unit = {
+  def foo[T](x: T)(implicit m: Manifest[T]) {
     foo(List(x))
   }
   foo(1)

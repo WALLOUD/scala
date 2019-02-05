@@ -5,7 +5,7 @@ object A extends Dynamic {
 
   def selectDynamic(method:String): String = a
 
-  def updateDynamic(method:String)(v:String): Unit = { a = v }
+  def updateDynamic(method:String)(v:String) { a = v }
 }
 
 class B extends Dynamic {
@@ -13,7 +13,7 @@ class B extends Dynamic {
 
   def selectDynamic(method:String): String = b
 
-  def updateDynamic(method:String)(v:String): Unit = { b = v }
+  def updateDynamic(method:String)(v:String) { b = v }
 }
 
 object Test extends App {
@@ -38,7 +38,7 @@ object Test extends App {
 }
 
 class ABTest {
-  def test(): Unit = {
+  def test() {
     assert( A.foo == "a" )
     assert( A.bar == "a" )
     A.aaa = "aaa"

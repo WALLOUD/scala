@@ -1,26 +1,17 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools.nsc
 package io
 
 import scala.language.postfixOps
-import java.io.{DataOutputStream, InputStream, OutputStream}
-import java.util.jar._
 
+import java.io.{ InputStream, OutputStream, DataOutputStream }
+import java.util.jar._
 import scala.collection.JavaConverters._
 import Attributes.Name
-
-import scala.collection.AbstractIterable
 
 // Attributes.Name instances:
 //
@@ -42,7 +33,7 @@ import scala.collection.AbstractIterable
 // static Attributes.Name   SPECIFICATION_VENDOR
 // static Attributes.Name   SPECIFICATION_VERSION
 
-class Jar(file: File) extends AbstractIterable[JarEntry] {
+class Jar(file: File) extends Iterable[JarEntry] {
   def this(jfile: JFile) = this(File(jfile))
   def this(path: String) = this(File(path))
 
@@ -84,7 +75,6 @@ class Jar(file: File) extends AbstractIterable[JarEntry] {
     Iterator continually in.getNextJarEntry() takeWhile (_ != null) foreach f
   }
   override def iterator: Iterator[JarEntry] = this.toList.iterator
-  override def isEmpty: Boolean = iterator.isEmpty
   override def toString = "" + file
 }
 
@@ -101,24 +91,24 @@ class JarWriter(val file: File, val manifest: Manifest) {
     new DataOutputStream(out)
   }
 
-  def writeAllFrom(dir: Directory): Unit = {
+  def writeAllFrom(dir: Directory) {
     try dir.list foreach (x => addEntry(x, ""))
     finally out.close()
   }
-  def addStream(entry: JarEntry, in: InputStream): Unit = {
+  def addStream(entry: JarEntry, in: InputStream) {
     out putNextEntry entry
     try transfer(in, out)
     finally out.closeEntry()
   }
-  def addFile(file: File, prefix: String): Unit = {
+  def addFile(file: File, prefix: String) {
     val entry = new JarEntry(prefix + file.name)
     addStream(entry, file.inputStream())
   }
-  def addEntry(entry: Path, prefix: String): Unit = {
+  def addEntry(entry: Path, prefix: String) {
     if (entry.isFile) addFile(entry.toFile, prefix)
     else addDirectory(entry.toDirectory, prefix + entry.name + "/")
   }
-  def addDirectory(entry: Directory, prefix: String): Unit = {
+  def addDirectory(entry: Directory, prefix: String) {
     entry.list foreach (p => addEntry(p, prefix))
   }
 
@@ -165,7 +155,7 @@ object Jar {
     def update(key: Attributes.Name, value: String) = attrs.put(key, value)
   }
 
-  // See https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html
+  // See http://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html
   // for some ideas.
   private val ZipMagicNumber = List[Byte](80, 75, 3, 4)
   private def magicNumberIsZip(f: Path) = f.isFile && (f.toFile.bytes().take(4).toList == ZipMagicNumber)
@@ -174,7 +164,7 @@ object Jar {
   def isJarOrZip(f: Path, examineFile: Boolean): Boolean =
     f.hasExtension("zip", "jar") || (examineFile && magicNumberIsZip(f))
 
-  def create(file: File, sourceDir: Directory, mainClass: String): Unit = {
+  def create(file: File, sourceDir: Directory, mainClass: String) {
     val writer = new Jar(file).jarWriter(Name.MAIN_CLASS -> mainClass)
     writer writeAllFrom sourceDir
   }

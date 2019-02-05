@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.reflect.reify
 package utils
 
@@ -70,7 +58,7 @@ trait Extractors {
         }
         var prev = symtab
         var next = loop(symtab)
-        while (next.syms.sizeCompare(prev.syms) < 0) {
+        while (next.syms.length < prev.syms.length) {
           prev = next
           next = loop(prev)
         }
@@ -84,7 +72,7 @@ trait Extractors {
     }
     val tpec = ClassDef(
       Modifiers(FINAL),
-      newTypeName(currentFreshNameCreator.newName(flavor.toString)),
+      newTypeName(global.currentUnit.fresh.newName(flavor.toString)),
       List(),
       Template(List(Ident(reifierBase)),
       noSelfType,

@@ -1,21 +1,9 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
 package tpe
 
-import scala.collection.mutable
+import scala.collection.{ mutable }
 import util.TriState
 import scala.annotation.tailrec
 import scala.reflect.internal.util.StatisticsStatics
@@ -28,7 +16,7 @@ trait TypeComparers {
 
   private final val LogPendingSubTypesThreshold = TypeConstants.DefaultLogThreshhold
 
-  private[this] val _pendingSubTypes = new mutable.HashSet[SubTypePair]
+  private val _pendingSubTypes = new mutable.HashSet[SubTypePair]
   def pendingSubTypes = _pendingSubTypes
 
   final case class SubTypePair(tp1: Type, tp2: Type) {
@@ -40,10 +28,10 @@ trait TypeComparers {
     //
     //         I added a tests to show that we detect the cycle: neg/t8146-no-finitary*
 
-    override def toString = tp1.toString+" <:<? "+tp2
+    override def toString = tp1+" <:<? "+tp2
   }
 
-  private[this] var _subsametypeRecursions: Int = 0
+  private var _subsametypeRecursions: Int = 0
   def subsametypeRecursions = _subsametypeRecursions
   def subsametypeRecursions_=(value: Int) = _subsametypeRecursions = value
 
@@ -211,7 +199,7 @@ trait TypeComparers {
      *  up any type constraints naive enough to get into their hot rods.
      */
     def mutateNonTypeConstructs(lhs: Type, rhs: Type) = lhs match {
-      case pt: ProtoType                       => pt.registerTypeEquality(rhs)
+      case BoundedWildcardType(bounds)         => bounds containsType rhs
       case tv @ TypeVar(_, _)                  => tv.registerTypeEquality(rhs, typeVarLHS = lhs eq tp1)
       case TypeRef(tv @ TypeVar(_, _), sym, _) => tv.registerTypeSelection(sym, rhs)
       case _                                   => false
@@ -381,23 +369,22 @@ trait TypeComparers {
   // @assume tp1.isHigherKinded || tp2.isHigherKinded
   def isHKSubType(tp1: Type, tp2: Type, depth: Depth): Boolean = {
 
-    def hkSubVariance(tparams1: List[Symbol], tparams2: List[Symbol]) =
-      (tparams1 corresponds tparams2)(methodHigherOrderTypeParamsSubVariance)
-
     def isSubHKTypeVar(tp1: Type, tp2: Type) = (tp1, tp2) match {
-      case (tv1: TypeVar, tv2: TypeVar) =>
-        devWarning(sm"Unexpected code path: testing two type variables for subtype relation: $tv1 <:< $tv2")
-        tv1 eq tv2
-      case (_, tv2: TypeVar) =>
+      case (tv1 @ TypeVar(_, _), tv2 @ TypeVar(_, _)) =>
+        reporter.warning(tv1.typeSymbol.pos,
+          sm"""|compiler bug: Unexpected code path: testing two type variables for subtype relation:
+               |  ${tv1} <:< ${tv2}
+               |Please report bug at https://github.com/scala/bug/issues
+            """.trim)
+        false
+      case (tp1, tv2 @ TypeVar(_, _)) =>
         val ntp1 = tp1.normalize
-        val kindsMatch = (ntp1.typeSymbol eq AnyClass) || hkSubVariance(tv2.params, ntp1.typeParams)
-        if (kindsMatch) tv2.addLoBound(ntp1)
-        kindsMatch
-      case (tv1: TypeVar, _) =>
+        (tv2.params corresponds ntp1.typeParams)(methodHigherOrderTypeParamsSubVariance) &&
+        { tv2.addLoBound(ntp1); true }
+      case (tv1 @ TypeVar(_, _), tp2) =>
         val ntp2 = tp2.normalize
-        val kindsMatch = (ntp2.typeSymbol eq NothingClass) || hkSubVariance(ntp2.typeParams, tv1.params)
-        if (kindsMatch) tv1.addHiBound(ntp2)
-        kindsMatch
+        (ntp2.typeParams corresponds tv1.params)(methodHigherOrderTypeParamsSubVariance) &&
+        { tv1.addHiBound(ntp2); true }
       case _ =>
         false
     }
@@ -407,8 +394,8 @@ trait TypeComparers {
         isSub2(tp1.normalize, tp2.normalize)  // @M! normalize reduces higher-kinded case to PolyType's
 
     def isSub2(ntp1: Type, ntp2: Type) = (ntp1, ntp2) match {
-      case (TypeRef(_, AnyClass, _), _) | (_, TypeRef(_, NothingClass, _))  => false                    // avoid some warnings when Nothing/Any are on the other side
-      case (WildcardType, _) | (_, WildcardType)                            => true                     // treat `?` as kind-polymorphic
+      case (TypeRef(_, AnyClass, _), _)                                     => false                    // avoid some warnings when Nothing/Any are on the other side
+      case (_, TypeRef(_, NothingClass, _))                                 => false
       case (pt1: PolyType, pt2: PolyType)                                   => isPolySubType(pt1, pt2)  // @assume both .isHigherKinded (both normalized to PolyType)
       case (_: PolyType, MethodType(ps, _)) if ps exists (_.tpe.isWildcard) => false                    // don't warn on HasMethodMatching on right hand side
       case _                                                                =>                          // @assume !(both .isHigherKinded) thus cannot be subtypes
@@ -475,10 +462,11 @@ trait TypeComparers {
       case AnnotatedType(_, _) =>
         isSubType(tp1.withoutAnnotations, tp2.withoutAnnotations, depth) &&
           annotationsConform(tp1, tp2)
-      case tp2: ProtoType => tp2.isMatchedBy(tp1, depth)
+      case BoundedWildcardType(bounds) =>
+        isSubType(tp1, bounds.hi, depth)
       case tv2 @ TypeVar(_, constr2) =>
         tp1 match {
-          case AnnotatedType(_, _) | _: ProtoType =>
+          case AnnotatedType(_, _) | BoundedWildcardType(_) =>
             secondTry
           case _ =>
             tv2.registerBound(tp1, isLowerBound = true)
@@ -488,16 +476,16 @@ trait TypeComparers {
     }
 
     /* Second try, on the left:
-     *   - ProtoType (usually a BoundedWildcardType)
-     *   - unwrap AnnotatedTypes
+     *   - unwrap AnnotatedTypes, BoundedWildcardTypes,
      *   - bind typevars,
      *   - handle existential types by skolemization.
      */
     def secondTry = tp1 match {
-      case pt: ProtoType => pt.canMatch(tp2, depth)
       case AnnotatedType(_, _) =>
         isSubType(tp1.withoutAnnotations, tp2.withoutAnnotations, depth) &&
           annotationsConform(tp1, tp2)
+      case BoundedWildcardType(bounds) =>
+        isSubType(tp1.bounds.lo, tp2, depth)
       case tv @ TypeVar(_,_) =>
         tv.registerBound(tp2, isLowerBound = false)
       case ExistentialType(_, _) =>
@@ -523,7 +511,7 @@ trait TypeComparers {
       sym2 match {
         case SingletonClass                   => tp1.isStable || fourthTry
         case _: ClassSymbol                   => classOnRight
-        case _: TypeSymbol if sym2.isDeferred => abstractTypeOnRight(tp2.lowerBound) || fourthTry
+        case _: TypeSymbol if sym2.isDeferred => abstractTypeOnRight(tp2.bounds.lo) || fourthTry
         case _: TypeSymbol                    => retry(normalizePlus(tp1), normalizePlus(tp2))
         case _                                => fourthTry
       }
@@ -594,7 +582,7 @@ trait TypeComparers {
             case _: ClassSymbol if isRawType(tp1)         => retry(normalizePlus(tp1), normalizePlus(tp2))
             case _: ClassSymbol if sym1.isModuleClass     => retry(normalizePlus(tp1), normalizePlus(tp2))
             case _: ClassSymbol if sym1.isRefinementClass => retry(sym1.info, tp2)
-            case _: TypeSymbol if sym1.isDeferred         => abstractTypeOnLeft(tp1.upperBound)
+            case _: TypeSymbol if sym1.isDeferred         => abstractTypeOnLeft(tp1.bounds.hi)
             case _: TypeSymbol                            => retry(normalizePlus(tp1), normalizePlus(tp2))
             case _                                        => false
           }

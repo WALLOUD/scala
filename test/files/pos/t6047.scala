@@ -1,4 +1,3 @@
-/* scalac: -language:experimental.macros */
 import scala.reflect.macros.blackbox.Context
 import java.io.InputStream
 

@@ -1,17 +1,12 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2002-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 // GENERATED CODE: DO NOT EDIT.
-// genprod generated these sources at: 2019-01-14T03:08:31.937870Z
+// genprod generated these sources at: Mon Jun 08 18:05:40 CEST 2015
 
 package scala
 
@@ -38,5 +33,5 @@ trait Function0[@specialized(Specializable.Primitives) +R] extends AnyRef { self
    */
   def apply(): R
 
-  override def toString(): String = "<function0>"
+  override def toString() = "<function0>"
 }

@@ -26,7 +26,7 @@ object packageless {
     }
   }
 
-  def test: Any = macro impl
+  def test = macro impl
 }
 
 package packageful {
@@ -43,6 +43,6 @@ package packageful {
       }
     }
 
-    def test: Any = macro impl
+    def test = macro impl
   }
 }

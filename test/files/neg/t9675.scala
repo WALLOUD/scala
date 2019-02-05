@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
   case class A(x: String)
 
@@ -16,7 +14,7 @@ object Test {
   def method(x: A): Boolean = { x != "x" }
   case class PersonInfo(rankPayEtc: Unit)
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     A("x") != "x"
 
     val func5: Function1[A, Boolean] = (x) => { x != "x" }

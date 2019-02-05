@@ -1,21 +1,16 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2006-2016, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://www.scala-lang.org/           **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package collection
 package convert
 
 import java.{ lang => jl, util => ju }, java.util.{ concurrent => juc }
-import scala.{ unchecked => uc }
 
 /** Defines converter methods from Scala to Java collections. */
 trait AsJavaConverters {
@@ -200,10 +195,10 @@ trait AsJavaConverters {
    * @param m The Scala mutable `Map` to be converted.
    * @return  A Java `Map` view of the argument.
    */
-  def mutableMapAsJavaMap[K, V](m: mutable.Map[K, V]): ju.Map[K, V] = m match {
-    case null                         => null
-    case w: JMapWrapper[K @uc, V @uc] => w.underlying
-    case _                            => new MutableMapWrapper(m)
+  def mutableMapAsJavaMap[A, B](m: mutable.Map[A, B]): ju.Map[A, B] = m match {
+    case null                 => null
+    case JMapWrapper(wrapped) => wrapped
+    case _                    => new MutableMapWrapper(m)
   }
 
   /**
@@ -220,7 +215,7 @@ trait AsJavaConverters {
    * @param m The Scala `Map` to be converted.
    * @return  A Java `Dictionary` view of the argument.
    */
-  def asJavaDictionary[K, V](m: mutable.Map[K, V]): ju.Dictionary[K, V] = m match {
+  def asJavaDictionary[A, B](m: mutable.Map[A, B]): ju.Dictionary[A, B] = m match {
     case null                         => null
     case JDictionaryWrapper(wrapped)  => wrapped
     case _                            => new DictionaryWrapper(m)
@@ -239,10 +234,10 @@ trait AsJavaConverters {
    * @param m The Scala `Map` to be converted.
    * @return  A Java `Map` view of the argument.
    */
-  def mapAsJavaMap[K, V](m: Map[K, V]): ju.Map[K, V] = m match {
-    case null                         => null
-    case w: JMapWrapper[K @uc, V @uc] => w.underlying
-    case _                            => new MapWrapper(m)
+  def mapAsJavaMap[A, B](m: Map[A, B]): ju.Map[A, B] = m match {
+    case null                 => null
+    case JMapWrapper(wrapped) => wrapped.asInstanceOf[ju.Map[A, B]]
+    case _                    => new MapWrapper(m)
   }
 
   /**
@@ -259,7 +254,7 @@ trait AsJavaConverters {
    * @param m The Scala `concurrent.Map` to be converted.
    * @return  A Java `ConcurrentMap` view of the argument.
    */
-  def mapAsJavaConcurrentMap[K, V](m: concurrent.Map[K, V]): juc.ConcurrentMap[K, V] = m match {
+  def mapAsJavaConcurrentMap[A, B](m: concurrent.Map[A, B]): juc.ConcurrentMap[A, B] = m match {
     case null                           => null
     case JConcurrentMapWrapper(wrapped) => wrapped
     case _                              => new ConcurrentMapWrapper(m)

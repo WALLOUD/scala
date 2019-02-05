@@ -1,6 +1,6 @@
 class A[T]
 class B {
-  def m(a: A[this.type] = new A[this.type]): Unit = { }
+  def m(a: A[this.type] = new A[this.type]) { }
 }
 
 class C {
@@ -15,7 +15,7 @@ object Test {
   val stableB = new B
   stableB.m()
 
-  def f: Unit = {
+  def f {
     println((new C).foo(0))
   }
 }

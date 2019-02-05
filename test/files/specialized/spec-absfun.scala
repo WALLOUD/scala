@@ -10,13 +10,13 @@ object Test {
 
   private val Max = 1000
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     notSpecialized()
     specialized()
     println(runtime.BoxesRunTime.integerBoxCount)
   }
 
-  def notSpecialized(): Unit = {
+  def notSpecialized() {
     val pairs = for { i <- 1 to Max; j <- 1 to i } yield new Pair(i, j)
     val time0 = System.nanoTime
     pairs foreach { p => p.first * p.second }
@@ -24,7 +24,7 @@ object Test {
 //    println(time1 - time0)
   }
 
-  def specialized(): Unit = {
+  def specialized() {
     val pairs = for { i <- 1 to Max; j <- 1 to i } yield new SpecializedPair(i, j)
     val time0 = System.nanoTime
     pairs foreach { p => p.first * p.second }

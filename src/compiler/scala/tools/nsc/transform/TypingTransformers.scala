@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Martin Odersky
  */
 
 package scala.tools.nsc
@@ -32,10 +25,10 @@ trait TypingTransformers {
     override final def atOwner[A](owner: Symbol)(trans: => A): A = atOwner(curTree, owner)(trans)
 
     def atOwner[A](tree: Tree, owner: Symbol)(trans: => A): A = {
-      val savedContext = localTyper.context
-      localTyper.context = localTyper.context.make(tree, if (owner.isModuleNotMethod) owner.moduleClass else owner)
+      val savedLocalTyper = localTyper
+      localTyper = localTyper.atOwner(tree, if (owner.isModuleNotMethod) owner.moduleClass else owner)
       val result = super.atOwner(owner)(trans)
-      localTyper.context = savedContext
+      localTyper = savedLocalTyper
       result
     }
 

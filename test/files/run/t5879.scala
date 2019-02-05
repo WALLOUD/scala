@@ -3,14 +3,14 @@ import collection.immutable.HashMap
 
 object Test {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     resolveDefault()
     resolveFirst()
     resolveSecond()
     resolveMany()
   }
 
-  def resolveDefault(): Unit = {
+  def resolveDefault() {
     val a = HashMap(1 -> "1")
     val b = HashMap(1 -> "2")
 
@@ -19,7 +19,7 @@ object Test {
     println(r(1))
   }
 
-  def resolveFirst(): Unit = {
+  def resolveFirst() {
     val a = HashMap(1 -> "1")
     val b = HashMap(1 -> "2")
     def collision(a: (Int, String), b: (Int, String)) = {
@@ -32,7 +32,7 @@ object Test {
     println(r(1))
   }
 
-  def resolveSecond(): Unit = {
+  def resolveSecond() {
     val a = HashMap(1 -> "1")
     val b = HashMap(1 -> "2")
     def collision(a: (Int, String), b: (Int, String)) = {
@@ -45,7 +45,7 @@ object Test {
     println(r(1))
   }
 
-  def resolveMany(): Unit = {
+  def resolveMany() {
     val a = HashMap((0 until 100) zip (0 until 100): _*)
     val b = HashMap((0 until 100) zip (100 until 200): _*)
     def collision(a: (Int, Int), b: (Int, Int)) = {

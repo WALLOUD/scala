@@ -1,5 +1,3 @@
-// scalac: -Ywarn-numeric-widen -Xfatal-warnings
-//
 trait Foo
 
 class WarnWidening {

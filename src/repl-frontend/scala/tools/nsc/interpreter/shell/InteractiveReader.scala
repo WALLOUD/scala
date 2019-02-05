@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author Stepan Koltsov
  */
 
 package scala.tools.nsc.interpreter.shell
@@ -94,10 +87,10 @@ class SplashLoop(in: InteractiveReader, prompt: String) extends Runnable {
 
     val text =
       try
-        Iterator.continually(in.readLine(help)).takeWhile { x =>
+        Iterator continually in.readLine(help) takeWhile { x =>
           help = ""
           x != null && running
-        }.mkString(EOL).trim
+        } mkString EOL trim
       catch { case ie: InterruptedException => "" } // TODO let the exception bubble up, or at least signal the interrupt happened?
 
     val next =
@@ -110,7 +103,6 @@ class SplashLoop(in: InteractiveReader, prompt: String) extends Runnable {
   def start(): Unit = result.synchronized {
     require(thread == null, "Already started")
     thread = new Thread(this)
-    thread.setDaemon(true)
     running = true
     thread.start()
   }

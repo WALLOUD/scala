@@ -1,15 +1,7 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
-
 package scala
 package reflect
 package api
@@ -758,7 +750,7 @@ trait Trees { self: Universe =>
    */
   val ImportSelector: ImportSelectorExtractor
 
-  /** An extractor class to create and pattern match with syntax `ImportSelector(name, namePos, rename, renamePos)`.
+  /** An extractor class to create and pattern match with syntax `ImportSelector(name:, namePos, rename, renamePos)`.
    *  This is not an AST node, it is used as a part of the `Import` node.
    *  @group Extractors
    */
@@ -788,18 +780,6 @@ trait Trees { self: Universe =>
      *  Is equal to -1 is the position is unknown.
      */
     def renamePos: Int
-
-    /** Does the selector mask or hide a name? `import x.{y => _}` */
-    def isMask: Boolean
-
-    /** Does the selector introduce a specific name? `import a.b, x.{y => z}` */
-    def isSpecific: Boolean
-
-    /** Does the selector introduce a specific name by rename? `x.{y => z}` */
-    def isRename: Boolean
-
-    /** Is the selector a wildcard import that introduces all available names? `import x._` */
-    def isWildcard: Boolean
   }
 
   /** Import clause
@@ -824,11 +804,11 @@ trait Trees { self: Universe =>
    *  Selectors are a list of ImportSelectors, which conceptually are pairs of names (from, to).
    *  The last (and maybe only name) may be a nme.WILDCARD. For instance:
    *
-   *    import qual.{w => _, x, y => z, _}
+   *    import qual.{x, y => z, _}
    *
    *  Would be represented as:
    *
-   *    Import(qual, List(("w", WILDCARD), ("x", "x"), ("y", "z"), (WILDCARD, null)))
+   *    Import(qual, List(("x", "x"), ("y", "z"), (WILDCARD, null)))
    *
    *  The symbol of an `Import` is an import symbol @see Symbol.newImport.
    *  It's used primarily as a marker to check that the import has been typechecked.
@@ -2513,7 +2493,7 @@ trait Trees { self: Universe =>
     def traverseParamss(vparamss: List[List[Tree]]): Unit = vparamss foreach traverseParams
 
     /** Traverses a list of trees with a given owner symbol. */
-    def traverseStats(stats: List[Tree], exprOwner: Symbol): Unit = {
+    def traverseStats(stats: List[Tree], exprOwner: Symbol) {
       stats foreach (stat =>
         if (exprOwner != currentOwner) atOwner(exprOwner)(traverse(stat))
         else traverse(stat)
@@ -2521,7 +2501,7 @@ trait Trees { self: Universe =>
     }
 
     /** Performs a traversal with a given owner symbol. */
-    def atOwner(owner: Symbol)(traverse: => Unit): Unit = {
+    def atOwner(owner: Symbol)(traverse: => Unit) {
       val prevOwner = currentOwner
       currentOwner = owner
       traverse
@@ -2537,14 +2517,14 @@ trait Trees { self: Universe =>
    *  because pattern matching on abstract types we have here degrades performance.
    *  @group Traversal
    */
-  @deprecated("Use Tree#traverse instead", "2.12.3")
+  @deprecated("2.12.3", "Use Tree#traverse instead")
   protected def itraverse(traverser: Traverser, tree: Tree): Unit = throw new MatchError(tree)
 
   /** Provides an extension hook for the traversal strategy.
    *  Future-proofs against new node types.
    *  @group Traversal
    */
-  @deprecated("Use Tree#traverse instead", "2.12.3")
+  @deprecated("2.12.3", "Use Tree#traverse instead")
   protected def xtraverse(traverser: Traverser, tree: Tree): Unit = throw new MatchError(tree)
 
   /** A class that implement a default tree transformation strategy: breadth-first component-wise cloning.

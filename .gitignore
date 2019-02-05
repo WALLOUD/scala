@@ -12,6 +12,10 @@
 #
 # JARs aren't checked in, they are fetched by sbt
 #
+# We could be more concise with /lib/**/*.jar but that assumes
+# a late-model git.
+#
+/lib/ant/*.jar
 /lib/*.jar
 /test/files/codelib/*.jar
 /test/files/lib/*.jar
@@ -33,7 +37,9 @@
 /bin/
 /sandbox/
 
-# intellij
+# eclipse, intellij
+/.classpath
+/.project
 /src/intellij*/*.iml
 /src/intellij*/*.ipr
 /src/intellij*/*.iws
@@ -49,6 +55,5 @@
 /project/target/
 /project/project/target/
 /project/project/project/target/
-/test/macro-annot/target/
 /build-sbt/
 local.sbt

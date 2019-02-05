@@ -21,7 +21,7 @@ trait D[T] {
     d2
   }
 
-  def x(other: D[Any]): Unit = {
+  def x(other: D[Any]) {
     other.d1
     other.d2 // not a member
   }

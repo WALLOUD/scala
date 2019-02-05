@@ -1,6 +1,6 @@
 object Test extends App {
   import collection._
-  val xs: View[(String, Int)] = List("x").view.zip(LazyList.from(0))
+  val xs: SeqView[(String, Int), Seq[_]] = List("x").view.zip(Stream.from(0))
   println(xs)
 
   val ys = List(1, 2, 3).view map { x => println("mapping "+x); x + 1 }
@@ -9,15 +9,16 @@ object Test extends App {
   println(ys.tail)
   println(ys(2))
   println(ys)
-  println(ys.toIndexedSeq)
+  println(ys.force)
 
   val zs = Array(1, 2, 3).view
-  val as: SeqView[Int] = zs map (_ + 1)
-  val bs: IndexedSeq[Int] = as.toIndexedSeq
+  val as: SeqView[Int, Array[Int]] = zs map (_ + 1)
+  val bs: Array[Int] = as.force
   val cs = zs.reverse
-  assert(cs.toIndexedSeq == List(3, 2, 1))
-  assert(zs(2) == 3)
-  assert(bs == List(2, 3, 4))
+  cs(0) += 1
+  assert(cs.force.deep == Array(4, 2, 1).deep)
+  assert(zs(2) == 4)
+  assert(bs.deep == Array(2, 3, 4).deep)
 }
 
 /* crash confirmed.

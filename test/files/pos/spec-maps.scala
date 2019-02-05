@@ -3,7 +3,7 @@ trait Fun1[@specialized +R, @specialized -T] {
 }
 
 object Main {
-  def mapA[@specialized B](xs: Array[B], f: Fun1[B, B]): Unit = {
+  def mapA[@specialized B](xs: Array[B], f: Fun1[B, B]) {
     for (i <- 0 until xs.length)
       xs(i) = f(xs(i))
   }

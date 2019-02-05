@@ -1,12 +1,12 @@
 object Test {
   def bar(s: String) = s;
   val o: Option[Null] = None
-  def nullReference: Unit = {
+  def nullReference {
     val a: Null = o.get
     bar(a) // Was: VerifyError under GenICode
   }
 
-  def literal: Unit = {
+  def literal {
     val a: Null = null
     bar(a)
   }

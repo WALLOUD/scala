@@ -20,7 +20,7 @@ object Test extends App {
     case _: Throwable => println("other")
   }
 
- def simpleTry: Unit = {
+ def simpleTry {
     try {
       bla
     } catch {
@@ -29,19 +29,19 @@ object Test extends App {
     }
   }
 
-  def typedWildcardTry: Unit = {
+  def typedWildcardTry {
     try { bla } catch { case _: ClassCastException => bla }
   }
 
-  def wildcardTry: Unit = {
+  def wildcardTry {
     try { bla } catch { case _: Throwable => bla }
   }
 
-  def tryPlusFinally: Unit = {
+  def tryPlusFinally {
     try { bla } finally { println("finally") }
   }
 
-  def catchAndPassToLambda: Unit = {
+  def catchAndPassToLambda {
     try { bla } catch { case ex: Exception => val f = () => ex }
   }
 }

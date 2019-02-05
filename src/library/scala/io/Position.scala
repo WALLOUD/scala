@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package io
@@ -73,7 +69,7 @@ private[scala] abstract class Position {
 }
 
 private[scala] object Position extends Position {
-  def checkInput(line: Int, column: Int): Unit = {
+  def checkInput(line: Int, column: Int) {
     if (line < 0)
       throw new IllegalArgumentException(line + " < 0")
     if ((line == 0) && (column != 0))

@@ -86,7 +86,7 @@ object Test extends AnyRef with App {
   }
 
   // ticket #981
-  def try6: Unit = {
+  def try6 {
    class SekwencjaArray {
     def get = null
    }

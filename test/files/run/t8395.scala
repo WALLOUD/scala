@@ -3,7 +3,7 @@
     val s @ (_s: String) = x
     x
   }
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     assert(baz("1") == "1")
   }
 }

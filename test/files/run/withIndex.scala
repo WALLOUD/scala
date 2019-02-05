@@ -3,7 +3,7 @@ object Test {
     val ary: Array[String] = Array("a", "b", "c")
     val lst: List[String] = List("a", "b", "c")
     val itr: Iterator[String] = lst.iterator
-    val str: LazyList[String] = lst.iterator.to(LazyList)
+    val str: Stream[String] = lst.iterator.toStream
 
     Console.println(ary.zipWithIndex.toList)
     Console.println(lst.zipWithIndex.toList)
@@ -19,7 +19,7 @@ object Test {
     val emptyArray = new Array[String](0)
     val emptyList: List[String] = Nil
     val emptyIterator = emptyList.iterator
-    val emptyStream: LazyList[String] = LazyList.empty
+    val emptyStream: Stream[String] = Stream.empty
 
     Console.println(emptyArray.zipWithIndex.toList)
     Console.println(emptyList.zipWithIndex.toList)

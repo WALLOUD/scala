@@ -16,7 +16,7 @@ trait NonFatalTests {
           new OutOfMemoryError,
           new LinkageError,
           new VirtualMachineError {},
-          new scala.util.control.ControlThrowable {})
+          new Throwable with scala.util.control.ControlThrowable)
 
 	def testFatalsUsingApply(): Unit = {
 	   fatals foreach { t => assert(NonFatal(t) == false) }

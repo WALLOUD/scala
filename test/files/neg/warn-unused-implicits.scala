@@ -1,5 +1,3 @@
-// scalac: -Ywarn-unused:implicits -Xfatal-warnings
-//
 
 trait InterFace {
   /** Call something. */

@@ -8,7 +8,7 @@ trait SI {
 }
 
 object Test {
-  def test: Unit = {
+  def test {
     def indirect(si: SI)(v: si.instance.Out) = v
 
     val foo: Foo { type Out = Int } = ???

@@ -5,17 +5,17 @@ object Test extends App {
   test2()
   println("OK")
 
-  def test1(): Unit = {
+  def test1() {
     val myMap: TreeMap[Int, String] = new TreeMap
     test_map(myMap)
   }
 
-  def test2(): Unit = {
+  def test2() {
     val myMap: ListMap[Int, String] = new ListMap
     test_map(myMap)
   }
 
-  def test_map(myMap: Map[Int, String]): Unit = {
+  def test_map(myMap: Map[Int, String]) {
     val map1 = myMap.updated(42,"The answer")
     val map2 = map1.updated(17,"A small random number")
     val map3 = map2.updated(666,"A bigger random number")
@@ -30,7 +30,7 @@ object Test extends App {
     i = 0
     while(i < 4712) {
       if (map.isDefinedAt(i))
-        print(s"$i->${map(i)} ")
+        print(i + "->" + map(i) + " ");
       i += 1
     }
     println("")

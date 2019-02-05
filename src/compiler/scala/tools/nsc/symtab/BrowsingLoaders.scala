@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala.tools.nsc
@@ -65,7 +58,7 @@ abstract class BrowsingLoaders extends GlobalSymbolLoaders {
   /** Browse the top-level of given abstract file `src` and enter
    *  any encountered top-level classes and modules in `root`
    */
-  def browseTopLevel(root: Symbol, src: AbstractFile): Unit = {
+  def browseTopLevel(root: Symbol, src: AbstractFile) {
 
     class BrowserTraverser extends Traverser {
       var packagePrefix = ""
@@ -124,7 +117,7 @@ abstract class BrowsingLoaders extends GlobalSymbolLoaders {
 
   /** Enter top-level symbols from a source file
    */
-  override def enterToplevelsFromSource(root: Symbol, name: String, src: AbstractFile): Unit = {
+  override def enterToplevelsFromSource(root: Symbol, name: String, src: AbstractFile) {
     try {
       if (root.isEffectiveRoot || !src.name.endsWith(".scala")) // RootClass or EmptyPackageClass
         super.enterToplevelsFromSource(root, name, src)

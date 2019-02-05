@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 object Test {
   // warning was non-deterministic
   List(5) match {

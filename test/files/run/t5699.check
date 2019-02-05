@@ -3,7 +3,7 @@ package <empty> {
   object MyAnnotation extends  {
     def <init>()
   };
-  abstract trait MyAnnotation extends _root_.java.lang.annotation.Annotation {
+  class MyAnnotation extends scala.annotation.Annotation with _root_.java.lang.annotation.Annotation with scala.annotation.StaticAnnotation {
     def <init>();
     def value(): String
   }

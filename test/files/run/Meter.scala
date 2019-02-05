@@ -79,8 +79,8 @@ object Test extends App {
 
   { println("testing native arrays")
     val arr = Array(x, y + x)
-    println(scala.tools.partest.Util.prettyArray(arr))
-    def foo[T <: Printable](x: Array[T]): Unit = {
+    println(arr.deep)
+    def foo[T <: Printable](x: Array[T]) {
       for (i <- 0 until x.length) { x(i).print; println(" "+x(i)) }
     }
     val m = arr(0)

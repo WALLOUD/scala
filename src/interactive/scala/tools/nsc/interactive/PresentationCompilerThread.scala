@@ -1,15 +1,8 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2009-2013 Typesafe/Scala Solutions and LAMP/EPFL
+ * @author Martin Odersky
+ * @author Iulian Dragos
  */
-
 package scala.tools.nsc.interactive
 
 /** A presentation compiler thread. This is a lightweight class, delegating most
@@ -21,7 +14,7 @@ final class PresentationCompilerThread(var compiler: Global, name: String = "")
 
   /** The presentation compiler loop.
    */
-  override def run(): Unit = {
+  override def run() {
     compiler.debugLog("starting new runner thread")
     while (compiler ne null) try {
       compiler.checkNoResponsesOutstanding()

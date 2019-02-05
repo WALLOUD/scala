@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala.tools.nsc
 package interactive
 package tests.core
@@ -28,7 +16,7 @@ private[tests] trait CoreTestDefs
     extends PresentationCompilerTestDef
     with AskTypeCompletionAt {
 
-    override def runTest(): Unit = {
+    override def runTest() {
       askAllSources(TypeCompletionMarker) { pos =>
         askTypeCompletionAt(pos)
       } { (pos, members) =>
@@ -52,7 +40,7 @@ private[tests] trait CoreTestDefs
     extends PresentationCompilerTestDef
     with AskScopeCompletionAt {
 
-    override def runTest(): Unit = {
+    override def runTest() {
       askAllSources(ScopeCompletionMarker) { pos =>
         askScopeCompletionAt(pos)
       } { (pos, members) =>
@@ -83,7 +71,7 @@ private[tests] trait CoreTestDefs
     extends PresentationCompilerTestDef
     with AskTypeAt {
 
-    override def runTest(): Unit = {
+    override def runTest() {
       askAllSources(TypeMarker) { pos =>
         askTypeAt(pos)
       } { (pos, tree) =>
@@ -102,7 +90,7 @@ private[tests] trait CoreTestDefs
     with AskTypeAt
     with AskTypeCompletionAt {
 
-    override def runTest(): Unit = {
+    override def runTest() {
       askAllSources(HyperlinkMarker) { pos =>
         askTypeAt(pos)(NullReporter)
       } { (pos, tree) =>

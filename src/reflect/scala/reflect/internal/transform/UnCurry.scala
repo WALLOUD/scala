@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect
 package internal
@@ -80,7 +68,7 @@ trait UnCurry {
       }
   }
 
-  private[this] val uncurryType = new TypeMap {
+  private val uncurryType = new TypeMap {
     def apply(tp0: Type): Type = {
       val tp = expandAlias(tp0)
       tp match {
@@ -120,6 +108,7 @@ trait UnCurry {
     // we are using `origSym.info`, which contains the type *before* the transformation
     // so we still see repeated parameter types (uncurry replaces them with Seq)
     val isRepeated = origSym.info.paramss.flatten.map(sym => definitions.isRepeatedParamType(sym.tpe))
+    val oldPs = newInfo.paramss.head
     def toArrayType(tp: Type, newParam: Symbol): Type = {
       val arg = elementType(SeqClass, tp)
       val elem = if (arg.typeSymbol.isTypeParameterOrSkolem && !(arg <:< AnyRefTpe)) {

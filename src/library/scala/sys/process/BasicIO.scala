@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package sys
@@ -17,6 +13,7 @@ package process
 import processInternal._
 import java.io.{ BufferedReader, InputStreamReader, FilterInputStream, FilterOutputStream }
 import java.util.concurrent.LinkedBlockingQueue
+import scala.collection.immutable.Stream
 import scala.annotation.tailrec
 
 /**
@@ -38,26 +35,6 @@ object BasicIO {
   /** Used to separate lines in the `processFully` function that takes `Appendable`. */
   final val Newline    = System.lineSeparator
 
-  private[process] final class LazilyListed[T](
-    val  process:   T => Unit,
-    val     done: Int => Unit,
-    val lazyList: LazyList[T]
-  )
-
-  private[process] object LazilyListed {
-    def apply[T](nonzeroException: Boolean, capacity: Integer): LazilyListed[T] = {
-      val queue = new LinkedBlockingQueue[Either[Int, T]](capacity)
-      val ll = LazyList.unfold(queue) { q =>
-        q.take match {
-          case Left(0)    => None
-          case Left(code) => if (nonzeroException) scala.sys.error("Nonzero exit code: " + code) else None
-          case Right(s)   => Some((s, q))
-        }
-      }
-      new LazilyListed((s: T) => queue put Right(s), code => queue put Left(code), ll)
-    }
-  }
-
   private[process] final class Streamed[T](
     val process:   T => Unit,
     val    done: Int => Unit,
@@ -77,7 +54,7 @@ object BasicIO {
   }
 
   private[process] trait Uncloseable extends Closeable {
-    final override def close(): Unit = ()
+    final override def close() { }
   }
   private[process] object Uncloseable {
     def apply(in: InputStream): InputStream      = new FilterInputStream(in) with Uncloseable { }
@@ -106,7 +83,7 @@ object BasicIO {
   def apply(withIn: Boolean, output: String => Unit, log: Option[ProcessLogger]) =
     new ProcessIO(input(withIn), processFully(output), getErr(log))
 
-  /** Creates a `ProcessIO` that appends its output to an `Appendable`. It can
+  /** Creates a `ProcessIO` that appends its output to a `StringBuffer`. It can
     * attach the process input to stdin, and it will either send the error
     * stream to stderr, or to a `ProcessLogger`.
     *
@@ -120,13 +97,13 @@ object BasicIO {
     * }}}
     *
     * @param withIn True if the process input should be attached to stdin.
-    * @param buffer An `Appendable` which will receive the process normal
+    * @param buffer A `StringBuffer` which will receive the process normal
     *               output.
     * @param log    An optional `ProcessLogger` to which the output should be
     *               sent. If `None`, output will be sent to stderr.
     * @return A `ProcessIO` with the characteristics above.
     */
-  def apply(withIn: Boolean, buffer: Appendable, log: Option[ProcessLogger]) =
+  def apply(withIn: Boolean, buffer: StringBuffer, log: Option[ProcessLogger]) =
     new ProcessIO(input(withIn), processFully(buffer), getErr(log))
 
   /** Creates a `ProcessIO` from a `ProcessLogger` . It can attach the
@@ -192,7 +169,7 @@ object BasicIO {
   /** Calls `processLine` with the result of `readLine` until the latter returns
    *  `null` or the current thread is interrupted.
    */
-  def processLinesFully(processLine: String => Unit)(readLine: () => String): Unit = {
+  def processLinesFully(processLine: String => Unit)(readLine: () => String) {
     def working = (Thread.currentThread.isInterrupted == false)
     def halting = { Thread.currentThread.interrupt(); null }
     def readFully(): Unit =
@@ -251,9 +228,9 @@ object BasicIO {
     buffer append Newline
   }
 
-  private[this] def transferFullyImpl(in: InputStream, out: OutputStream): Unit = {
+  private[this] def transferFullyImpl(in: InputStream, out: OutputStream) {
     val buffer = new Array[Byte](BufferSize)
-    @tailrec def loop(): Unit = {
+    @tailrec def loop() {
       val byteCount = in.read(buffer)
       if (byteCount > 0) {
         out.write(buffer, 0, byteCount)

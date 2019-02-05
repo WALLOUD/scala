@@ -18,12 +18,12 @@ object EmitManPage {
   def escape(text: String) =
     text.replaceAll("-", "\\-")
 
-  def emitSection(section: Section, depth: Int): Unit = {
-    def emitPara(text: AbstractText): Unit = {
+  def emitSection(section: Section, depth: Int) {
+    def emitPara(text: AbstractText) {
       emitText(text)
       out println "\n.IP"
     }
-    def emitText(text: AbstractText): Unit = {
+    def emitText(text: AbstractText) {
       text match {
         case seq:SeqText =>
           seq.components foreach emitText
@@ -83,7 +83,7 @@ object EmitManPage {
       }
     }
 
-    def emitParagraph(para: Paragraph): Unit = {
+    def emitParagraph(para: Paragraph) {
       para match {
         case TextParagraph(text) =>
           out println ".PP"
@@ -144,7 +144,7 @@ object EmitManPage {
     section.paragraphs foreach emitParagraph
   }
 
-  def emitDocument(doc: Document): Unit = {
+  def emitDocument(doc: Document) {
     out println ".\\\" ##########################################################################"
     out println ".\\\" #                      __                                                #"
     out println ".\\\" #      ________ ___   / /  ___     Scala 2 On-line Manual Pages          #"

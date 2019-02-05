@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2006-2016, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://www.scala-lang.org/           **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package collection
@@ -66,21 +62,21 @@ trait DecorateAsScala extends AsScalaConverters {
    * Adds an `asScala` method that implicitly converts a Java `Map` to a Scala mutable `Map`.
    * @see [[mapAsScalaMap]]
    */
-  implicit def mapAsScalaMapConverter[K, V](m : ju.Map[K, V]): AsScala[mutable.Map[K, V]] =
+  implicit def mapAsScalaMapConverter[A, B](m : ju.Map[A, B]): AsScala[mutable.Map[A, B]] =
     new AsScala(mapAsScalaMap(m))
 
   /**
    * Adds an `asScala` method that implicitly converts a Java `ConcurrentMap` to a Scala mutable `concurrent.Map`.
    * @see [[mapAsScalaConcurrentMap]]
    */
-  implicit def mapAsScalaConcurrentMapConverter[K, V](m: juc.ConcurrentMap[K, V]): AsScala[concurrent.Map[K, V]] =
+  implicit def mapAsScalaConcurrentMapConverter[A, B](m: juc.ConcurrentMap[A, B]): AsScala[concurrent.Map[A, B]] =
     new AsScala(mapAsScalaConcurrentMap(m))
 
   /**
    * Adds an `asScala` method that implicitly converts a Java `Dictionary` to a Scala mutable `Map`.
    * @see [[dictionaryAsScalaMap]]
    */
-  implicit def dictionaryAsScalaMapConverter[K, V](p: ju.Dictionary[K, V]): AsScala[mutable.Map[K, V]] =
+  implicit def dictionaryAsScalaMapConverter[A, B](p: ju.Dictionary[A, B]): AsScala[mutable.Map[A, B]] =
     new AsScala(dictionaryAsScalaMap(p))
 
   /**

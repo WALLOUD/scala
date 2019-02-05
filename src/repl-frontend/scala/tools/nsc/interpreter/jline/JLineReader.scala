@@ -1,21 +1,16 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/** NSC -- new Scala compiler
+  *
+  * Copyright 2005-2015 LAMP/EPFL
+  * @author Stepan Koltsov
+  * @author Adriaan Moors
+  */
 
 package scala.tools.nsc.interpreter.jline
 
 import java.{util => ju}
 
 import _root_.jline.{console => jconsole}
-import jline.console.completer.{CandidateListCompletionHandler, Completer}
+import jline.console.completer.{CandidateListCompletionHandler, Completer, CompletionHandler}
 import jconsole.history.{History => JHistory}
 
 import scala.tools.nsc.interpreter.shell._

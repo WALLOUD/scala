@@ -1,15 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/**
+ * @author Vlad Ureche
  */
-
 package scala.tools.nsc.doc
 package html.page.diagram
 
@@ -45,6 +36,8 @@ object DiagramStats {
   private[this] val filterTrack = new TimeTracker("diagrams model filtering")
   private[this] val modelTrack = new TimeTracker("diagrams model generation")
   private[this] val dotGenTrack = new TimeTracker("dot diagram generation")
+  private[this] val dotRunTrack = new TimeTracker("dot process running")
+  private[this] val svgTrack = new TimeTracker("svg processing")
   private[this] var brokenImages = 0
   private[this] var fixedImages = 0
 
@@ -54,6 +47,8 @@ object DiagramStats {
       filterTrack.printStats(settings.printMsg)
       modelTrack.printStats(settings.printMsg)
       dotGenTrack.printStats(settings.printMsg)
+      dotRunTrack.printStats(settings.printMsg)
+      svgTrack.printStats(settings.printMsg)
       println("  Broken images: " + brokenImages)
       println("  Fixed images: " + fixedImages)
       println("")
@@ -63,6 +58,8 @@ object DiagramStats {
   def addFilterTime(ms: Long) = filterTrack.addTime(ms)
   def addModelTime(ms: Long) = modelTrack.addTime(ms)
   def addDotGenerationTime(ms: Long) = dotGenTrack.addTime(ms)
+  def addDotRunningTime(ms: Long) = dotRunTrack.addTime(ms)
+  def addSvgTime(ms: Long) = svgTrack.addTime(ms)
 
   def addBrokenImage(): Unit = brokenImages += 1
   def addFixedImage(): Unit = fixedImages += 1

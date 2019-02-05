@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings
-//
 abstract sealed trait AST
 abstract sealed trait AExpr                  extends AST
 case class AAssign(name: String, v: AExpr)   extends AExpr

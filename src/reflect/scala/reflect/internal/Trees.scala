@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2013 LAMP/EPFL
+ * @author  Martin Odersky
  */
 
 package scala
@@ -16,7 +9,6 @@ package internal
 
 import Flags._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.Attachments
 import util.{Statistics, StatisticsStatics}
 
@@ -60,7 +52,7 @@ trait Trees extends api.Trees {
     def defineType(tp: Type): this.type = setType(tp)
 
     def symbol: Symbol = null //!!!OPT!!! symbol is about 3% of hot compile times -- megamorphic dispatch?
-    def symbol_=(sym: Symbol): Unit = { throw new UnsupportedOperationException("symbol_= inapplicable for " + this) }
+    def symbol_=(sym: Symbol) { throw new UnsupportedOperationException("symbol_= inapplicable for " + this) }
     def setSymbol(sym: Symbol): this.type = { symbol = sym; this }
     def hasSymbolField = false
     @deprecated("use hasSymbolField", "2.11.0") def hasSymbol = hasSymbolField
@@ -112,7 +104,7 @@ trait Trees extends api.Trees {
 
     override def orElse(alt: => Tree) = if (!isEmpty) this else alt
 
-    override def foreach(f: Tree => Unit): Unit = { new ForeachTreeTraverser(f).traverse(this) }
+    override def foreach(f: Tree => Unit) { new ForeachTreeTraverser(f).traverse(this) }
 
     override def withFilter(f: Tree => Boolean): List[Tree] = {
       val ft = new FilterTreeTraverser(f)
@@ -158,17 +150,13 @@ trait Trees extends api.Trees {
       })
 
     override def children: List[Tree] = {
-      var builder: ListBuffer[Tree] = null
-      def subtrees(x: Any): Unit = x match {
-        case EmptyTree =>
-        case t: Tree =>
-          if (builder eq null) builder = new ListBuffer[Tree]
-          builder += t
-        case xs: List[_] => xs foreach subtrees
-        case _ =>
+      def subtrees(x: Any): List[Tree] = x match {
+        case EmptyTree   => Nil
+        case t: Tree     => List(t)
+        case xs: List[_] => xs flatMap subtrees
+        case _           => Nil
       }
-      productIterator foreach subtrees
-      if (builder eq null) Nil else builder.result()
+      productIterator.toList flatMap subtrees
     }
 
     def freeTerms: List[FreeTermSymbol] = freeSyms[FreeTermSymbol](_.isFreeTerm, _.termSymbol)
@@ -213,7 +201,7 @@ trait Trees extends api.Trees {
     /** If `pf` is defined for a given subtree, call super.traverse(pf(tree)),
      *  otherwise super.traverse(tree).
      */
-    def foreachPartial(pf: PartialFunction[Tree, Tree]): Unit = {
+    def foreachPartial(pf: PartialFunction[Tree, Tree]) {
       new ForeachPartialTreeTraverser(pf).traverse(this)
     }
 
@@ -222,9 +210,6 @@ trait Trees extends api.Trees {
         new ChangeOwnerTraverser(oldOwner, newOwner) apply t
       }
     }
-
-    def changeOwner(from: Symbol, to: Symbol): Tree =
-      new ChangeOwnerTraverser(from, to) apply this
 
     def shallowDuplicate: Tree = new ShallowDuplicator(this) transform this
     def shortClass: String = (getClass.getName split "[.$]").last
@@ -464,7 +449,7 @@ trait Trees extends api.Trees {
   case class LabelDef(name: TermName, params: List[Ident], rhs: Tree)
        extends DefTree with TermTree with LabelDefApi {
     override def transform(transformer: Transformer): Tree =
-      transformer.treeCopy.LabelDef(this, name, transformer.transformIdents(params), transformer.transform(rhs)) //bq: Martin, once, atOwner(...) works, also change `LambdaLifter.proxy`
+      transformer.treeCopy.LabelDef(this, name, transformer.transformIdents(params), transformer.transform(rhs)) //bq: Martin, once, atOwner(...) works, also change `LambdaLifter.proxy'
     override def traverse(traverser: Traverser): Unit = {
       traverser.traverseName(name)
       traverser.traverseParams(params)
@@ -478,21 +463,10 @@ trait Trees extends api.Trees {
       }
   }
 
-  case class ImportSelector(name: Name, namePos: Int, rename: Name, renamePos: Int) extends ImportSelectorApi {
-    assert(name == nme.WILDCARD && rename == null || rename != null)
-    def isWildcard = name == nme.WILDCARD && rename == null
-    def isMask = name != nme.WILDCARD && rename == nme.WILDCARD
-    def isSpecific = !isWildcard
-    def isRename = rename != null && rename != nme.WILDCARD && name != rename
-    private def isLiteralWildcard = name == nme.WILDCARD && rename == nme.WILDCARD
-    def introduces(target: Name) =
-      if (target == nme.WILDCARD) isLiteralWildcard
-      else target != null && target == rename
-  }
+  case class ImportSelector(name: Name, namePos: Int, rename: Name, renamePos: Int) extends ImportSelectorApi
   object ImportSelector extends ImportSelectorExtractor {
     val wild     = ImportSelector(nme.WILDCARD, -1, null, -1)
     val wildList = List(wild) // OPT This list is shared for performance.
-    def wildAt(pos: Int) = ImportSelector(nme.WILDCARD, pos, null, -1)
   }
 
   case class Import(expr: Tree, selectors: List[ImportSelector])
@@ -716,15 +690,6 @@ trait Trees extends api.Trees {
   }
   object Typed extends TypedExtractor
 
-  // represents `expr _`, as specified in Method Values of spec/06-expressions.md
-  object MethodValue {
-    def apply(expr: Tree): Tree = Typed(expr, Function(Nil, EmptyTree))
-    def unapply(tree: Tree): Option[Tree] = tree match {
-      case Typed(expr, Function(Nil, EmptyTree)) => Some(expr)
-      case _ => None
-    }
-  }
-
   abstract class GenericApply extends TermTree with GenericApplyApi {
     val fun: Tree
     val args: List[Tree]
@@ -736,7 +701,7 @@ trait Trees extends api.Trees {
     assert(fun.isTerm, fun)
 
     override def symbol: Symbol = fun.symbol
-    override def symbol_=(sym: Symbol): Unit = { fun.symbol = sym }
+    override def symbol_=(sym: Symbol) { fun.symbol = sym }
     override def transform(transformer: Transformer): Tree =
       transformer.treeCopy.TypeApply(this, transformer.transform(fun), transformer.transformTrees(args))
     override def traverse(traverser: Traverser): Unit = {
@@ -749,7 +714,7 @@ trait Trees extends api.Trees {
   case class Apply(fun: Tree, args: List[Tree])
        extends GenericApply with ApplyApi {
     override def symbol: Symbol = fun.symbol
-    override def symbol_=(sym: Symbol): Unit = { fun.symbol = sym }
+    override def symbol_=(sym: Symbol) { fun.symbol = sym }
     override def transform(transformer: Transformer): Tree =
       transformer.treeCopy.Apply(this, transformer.transform(fun), transformer.transformTrees(args))
     override def traverse(traverser: Traverser): Unit = {
@@ -790,7 +755,7 @@ trait Trees extends api.Trees {
 
   case class Super(qual: Tree, mix: TypeName) extends TermTree with SuperApi {
     override def symbol: Symbol = qual.symbol
-    override def symbol_=(sym: Symbol): Unit = { qual.symbol = sym }
+    override def symbol_=(sym: Symbol) { qual.symbol = sym }
     override def transform(transformer: Transformer): Tree =
       transformer.treeCopy.Super(this, transformer.transform(qual), mix)
     override def traverse(traverser: Traverser): Unit = {
@@ -840,7 +805,7 @@ trait Trees extends api.Trees {
 
   case class ReferenceToBoxed(ident: Ident) extends TermTree with ReferenceToBoxedApi {
     override def symbol: Symbol = ident.symbol
-    override def symbol_=(sym: Symbol): Unit = { ident.symbol = sym }
+    override def symbol_=(sym: Symbol) { ident.symbol = sym }
     override def transform(transformer: Transformer): Tree =
       transformer.treeCopy.ReferenceToBoxed(this, transformer.transform(ident) match { case idt1: Ident => idt1 })
     override def traverse(traverser: Traverser): Unit = {
@@ -912,7 +877,7 @@ trait Trees extends api.Trees {
     assert(tpt.isType, tpt)
 
     override def symbol: Symbol = tpt.symbol
-    override def symbol_=(sym: Symbol): Unit = { tpt.symbol = sym }
+    override def symbol_=(sym: Symbol) { tpt.symbol = sym }
     override def transform(transformer: Transformer): Tree =
       transformer.treeCopy.AppliedTypeTree(this, transformer.transform(tpt), transformer.transformTrees(args))
     override def traverse(traverser: Traverser): Unit = {
@@ -1328,6 +1293,17 @@ trait Trees extends api.Trees {
     }
   }
 
+  // Belongs in TreeInfo but then I can't reach it from Printers.
+  def isReferenceToScalaMember(t: Tree, Id: Name) = t match {
+    case Ident(Id)                                          => true
+    case Select(Ident(nme.scala_), Id)                      => true
+    case Select(Select(Ident(nme.ROOTPKG), nme.scala_), Id) => true
+    case _                                                  => false
+  }
+  /** Is the tree Predef, scala.Predef, or _root_.scala.Predef?
+   */
+  def isReferenceToPredef(t: Tree) = isReferenceToScalaMember(t, nme.Predef)
+
   // --- modifiers implementation ---------------------------------------
 
   /** @param privateWithin the qualifier for a private (a type name)
@@ -1584,7 +1560,7 @@ trait Trees extends api.Trees {
   // --- specific traversers and transformers
 
   class ForeachPartialTreeTraverser(pf: PartialFunction[Tree, Tree]) extends InternalTraverser {
-    override def traverse(tree: Tree): Unit = {
+    override def traverse(tree: Tree) {
       val t = if (pf isDefinedAt tree) pf(tree) else tree
       super.traverse(t)
     }
@@ -1597,7 +1573,7 @@ trait Trees extends api.Trees {
         if (sym.isModule) sym.moduleClass.owner = newowner
       }
     }
-    override def traverse(tree: Tree): Unit = {
+    override def traverse(tree: Tree) {
       tree match {
         case _: Return =>
           if (tree.symbol == oldowner) {
@@ -1614,31 +1590,6 @@ trait Trees extends api.Trees {
         case _ =>
       }
       tree.traverse(this)
-    }
-  }
-
-  class LocalOwnersTraverser extends InternalTraverser {
-    val result: mutable.Set[Symbol] = mutable.Set.empty[Symbol]
-
-    override def traverse(tree: Tree): Unit = {
-      tree match {
-        case _: DefTree | _: Function if(tree.hasExistingSymbol) =>
-          result += tree.symbol
-        case _ =>
-      }
-      tree.traverse(this)
-    }
-  }
-
-  def changeNonLocalOwners(tree: Tree, newowner: Symbol): Unit = {
-    val localOwnersTraverser = new LocalOwnersTraverser
-    localOwnersTraverser(tree)
-    val localOwners = localOwnersTraverser.result
-    localOwners.foreach { sym =>
-      if (!localOwners.contains(sym.owner)) {
-        sym.owner = newowner
-        if (sym.isModule) sym.moduleClass.owner = newowner
-      }
     }
   }
 
@@ -1660,7 +1611,7 @@ trait Trees extends api.Trees {
 
   // Create a readable string describing a substitution.
   private def substituterString(fromStr: String, toStr: String, from: List[Any], to: List[Any]): String = {
-    "subst[%s, %s](%s)".format(fromStr, toStr, from.lazyZip(to).map(_ + " -> " + _).mkString(", "))
+    "subst[%s, %s](%s)".format(fromStr, toStr, (from, to).zipped map (_ + " -> " + _) mkString ", ")
   }
 
   // NOTE: calls shallowDuplicate on trees in `to` to avoid problems when symbols in `from`
@@ -1695,7 +1646,7 @@ trait Trees extends api.Trees {
   }
 
   class TypeMapTreeSubstituter(val typeMap: TypeMap) extends InternalTraverser {
-    override def traverse(tree: Tree): Unit = {
+    override def traverse(tree: Tree) {
       tree modifyType typeMap
       if (tree.isDef)
         tree.symbol modifyInfo typeMap
@@ -1727,9 +1678,9 @@ trait Trees extends api.Trees {
    */
   class TreeSymSubstituter(from: List[Symbol], to: List[Symbol]) extends InternalTransformer {
     val symSubst = new SubstSymMap(from, to)
-    private[this] var mutatedSymbols: List[Symbol] = Nil
+    private var mutatedSymbols: List[Symbol] = Nil
     override def transform(tree: Tree): Tree = {
-      def subst(from: List[Symbol], to: List[Symbol]): Unit = {
+      def subst(from: List[Symbol], to: List[Symbol]) {
         if (!from.isEmpty)
           if (tree.symbol == from.head) tree setSymbol to.head
           else subst(from.tail, to.tail)
@@ -1780,7 +1731,7 @@ trait Trees extends api.Trees {
 
 
   class ForeachTreeTraverser(f: Tree => Unit) extends InternalTraverser {
-    override def traverse(t: Tree): Unit = {
+    override def traverse(t: Tree) {
       f(t)
       t.traverse(this)
     }
@@ -1788,7 +1739,7 @@ trait Trees extends api.Trees {
 
   class FilterTreeTraverser(p: Tree => Boolean) extends InternalTraverser {
     val hits = mutable.ListBuffer[Tree]()
-    override def traverse(t: Tree): Unit = {
+    override def traverse(t: Tree) {
       if (p(t)) hits += t
       t.traverse(this)
     }
@@ -1796,7 +1747,7 @@ trait Trees extends api.Trees {
 
   class CollectTreeTraverser[T](pf: PartialFunction[Tree, T]) extends InternalTraverser {
     val results = mutable.ListBuffer[T]()
-    override def traverse(t: Tree): Unit = {
+    override def traverse(t: Tree) {
       if (pf.isDefinedAt(t)) results += pf(t)
       t.traverse(this)
     }
@@ -1804,9 +1755,10 @@ trait Trees extends api.Trees {
 
   class FindTreeTraverser(p: Tree => Boolean) extends InternalTraverser {
     var result: Option[Tree] = None
-    override def traverse(t: Tree): Unit = {
+    override def traverse(t: Tree) {
       if (result.isEmpty) {
-        if (p(t)) result = Some(t) else t.traverse(this)
+        if (p(t)) result = Some(t)
+        t.traverse(this)
       }
     }
   }
@@ -1820,16 +1772,6 @@ trait Trees extends api.Trees {
       t1
     }
   }
-
-  final def focusInPlace(t: Tree): t.type =
-    if (useOffsetPositions) t else { focuser traverse t; t }
-  private object focuser extends InternalTraverser {
-    override def traverse(t: Tree) = {
-      t setPos t.pos.focus
-      t traverse this
-    }
-  }
-
   trait TreeStackTraverser extends InternalTraverser {
     import collection.mutable
     val path: mutable.Stack[Tree] = mutable.Stack()

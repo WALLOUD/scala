@@ -1,14 +1,8 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2005-2012 LAMP/EPFL
+ * @author  Martin Odersky
  */
+
 
 package scala
 package tools.nsc
@@ -117,7 +111,7 @@ abstract class BCodeSyncAndTry extends BCodeBodyBuilder {
      *  Useful to avoid emitting an empty try-block being protected by exception handlers,
      *  which results in "java.lang.ClassFormatError: Illegal exception table range". See scala/bug#6102.
      */
-    def nopIfNeeded(lbl: asm.Label): Unit = {
+    def nopIfNeeded(lbl: asm.Label) {
       val noInstructionEmitted = isAtProgramPoint(lbl)
       if (noInstructionEmitted) { emit(asm.Opcodes.NOP) }
     }
@@ -376,7 +370,7 @@ abstract class BCodeSyncAndTry extends BCodeBodyBuilder {
     } // end of genLoadTry()
 
     /* if no more pending cleanups, all that remains to do is return. Otherwise jump to the next (outer) pending cleanup. */
-    private def pendingCleanups(): Unit = {
+    private def pendingCleanups() {
       cleanups match {
         case Nil =>
           if (earlyReturnVar != null) {
@@ -392,7 +386,7 @@ abstract class BCodeSyncAndTry extends BCodeBodyBuilder {
       }
     }
 
-    def protect(start: asm.Label, end: asm.Label, handler: asm.Label, excType: ClassBType): Unit = {
+    def protect(start: asm.Label, end: asm.Label, handler: asm.Label, excType: ClassBType) {
       val excInternalName: String =
         if (excType == null) null
         else excType.internalName
@@ -401,7 +395,7 @@ abstract class BCodeSyncAndTry extends BCodeBodyBuilder {
     }
 
     /* `tmp` (if non-null) is the symbol of the local-var used to preserve the result of the try-body, see `guardResult` */
-    def emitFinalizer(finalizer: Tree, tmp: Symbol, isDuplicate: Boolean): Unit = {
+    def emitFinalizer(finalizer: Tree, tmp: Symbol, isDuplicate: Boolean) {
       var saved: immutable.Map[ /* LabelDef */ Symbol, asm.Label ] = null
       if (isDuplicate) {
         saved = jumpDest

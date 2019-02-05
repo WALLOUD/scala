@@ -9,7 +9,7 @@ import scala.tools.testing.AssertUtil.assertThrows
 
 @RunWith(classOf[JUnit4])
 class SettingsTest {
-  @Test def booleanSettingColon(): Unit = {
+  @Test def booleanSettingColon() {
     def check(args: String*): MutableSettings#BooleanSetting = {
       val s = new MutableSettings(msg => throw new IllegalArgumentException(msg))
       val b1 = new s.BooleanSetting("-Ytest-setting", "")
@@ -26,6 +26,18 @@ class SettingsTest {
     assertThrows[IllegalArgumentException](check("-Ytest-setting:rubbish"))
   }
 
+  @Test def userSettingsHavePrecedenceOverExperimental() {
+    def check(args: String*): MutableSettings#BooleanSetting = {
+      val s = new MutableSettings(msg => throw new IllegalArgumentException(msg))
+      val (ok, residual) = s.processArguments(args.toList, processAll = true)
+      assert(residual.isEmpty)
+      s.YpartialUnification // among -Xexperimental
+    }
+    assertTrue(check("-Xexperimental").value)
+    assertFalse(check("-Xexperimental", "-Ypartial-unification:false").value)
+    assertFalse(check("-Ypartial-unification:false", "-Xexperimental").value)
+  }
+
   // for the given args, select the desired setting
   private def check(args: String*)(b: MutableSettings => Boolean): Boolean = {
     val s = new MutableSettings(msg => throw new IllegalArgumentException(msg))
@@ -33,13 +45,13 @@ class SettingsTest {
     assert(residual.isEmpty)
     b(s)
   }
-  @Test def userSettingsHavePrecedenceOverLint(): Unit = {
-    assertTrue(check("-Xlint")(_.warnUnusedImport))
-    assertFalse(check("-Xlint", "-Ywarn-unused:-imports")(_.warnUnusedImport))
-    assertFalse(check("-Ywarn-unused:-imports", "-Xlint")(_.warnUnusedImport))
+  @Test def userSettingsHavePrecedenceOverLint() {
+    assertTrue(check("-Xlint")(_.warnAdaptedArgs))
+    assertFalse(check("-Xlint", "-Ywarn-adapted-args:false")(_.warnAdaptedArgs))
+    assertFalse(check("-Ywarn-adapted-args:false", "-Xlint")(_.warnAdaptedArgs))
   }
 
-  @Test def anonymousLintersCanBeNamed(): Unit = {
+  @Test def anonymousLintersCanBeNamed() {
     assertTrue(check("-Xlint")(_.warnMissingInterpolator)) // among Xlint
     assertFalse(check("-Xlint:-missing-interpolator")(_.warnMissingInterpolator))
 
@@ -93,6 +105,18 @@ class SettingsTest {
     assertFalse(check("-Xlint:_,-adapted-args")(t(_, "adapted-args")))
     assertFalse(check("-Xlint:-adapted-args,_")(t(_, "adapted-args")))
     assertTrue(check("-Xlint:-adapted-args,_,adapted-args")(t(_, "adapted-args")))
+  }
+
+  @Test def xLintDeprecatedAlias(): Unit = {
+    assertTrue(check("-Ywarn-adapted-args")(_.warnAdaptedArgs))
+    assertTrue(check("-Xlint:_,-adapted-args", "-Ywarn-adapted-args")(_.warnAdaptedArgs))
+    assertTrue(check("-Xlint:-adapted-args", "-Ywarn-adapted-args")(_.warnAdaptedArgs))
+    assertTrue(check("-Ywarn-adapted-args", "-Xlint:-adapted-args,_")(_.warnAdaptedArgs))
+
+    assertFalse(check("-Ywarn-adapted-args:false")(_.warnAdaptedArgs))
+    assertFalse(check("-Ywarn-adapted-args:false", "-Xlint:_")(_.warnAdaptedArgs))
+    assertFalse(check("-Ywarn-adapted-args:false", "-Xlint:_,-adapted-args")(_.warnAdaptedArgs))
+    assertTrue(check("-Ywarn-adapted-args:false", "-Xlint:_,adapted-args")(_.warnAdaptedArgs))
   }
 
   @Test def expandingMultichoice(): Unit = {
@@ -160,7 +184,7 @@ class SettingsTest {
 
   // equal with stripped margins and normalized line endings
   private def marginallyEquals(s1: String, s2: String): Boolean = {
-    def normally(s: String): String = s.stripMargin.linesIterator.mkString("\n")
+    def normally(s: String): String = s.stripMargin.lines.mkString("\n")
     normally(s1) == normally(s2)
   }
 

@@ -1,15 +1,3 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 // Copyright 2005-2017 LAMP/EPFL and Lightbend, Inc
 
 package scala.tools.nsc
@@ -200,10 +188,10 @@ trait AccessorSynthesis extends Transform with ast.TreeDSL {
         bitmapSyms
       }
 
-      fields.groupBy(bitmapCategory).flatMap {
-        case (category, fields) if category != nme.NO_NAME && fields.nonEmpty => allocateBitmaps(fields, category): Iterable[Symbol]
+      fields groupBy bitmapCategory flatMap {
+        case (category, fields) if category != nme.NO_NAME && fields.nonEmpty => allocateBitmaps(fields, category)
         case _ => Nil
-      }.toList
+      } toList
     }
 
     def slowPathFor(lzyVal: Symbol): Symbol = _slowPathFor(lzyVal)
@@ -290,7 +278,7 @@ trait AccessorSynthesis extends Transform with ast.TreeDSL {
         */
       def expandLazyClassMember(lazyVar: global.Symbol, lazyAccessor: global.Symbol, transformedRhs: global.Tree): Tree = {
         val slowPathSym  = slowPathFor(lazyAccessor)
-        val rhsAtSlowDef = transformedRhs.changeOwner(lazyAccessor, slowPathSym)
+        val rhsAtSlowDef = transformedRhs.changeOwner(lazyAccessor -> slowPathSym)
 
         val isUnit    = isUnitGetter(lazyAccessor)
         val selectVar = if (isUnit) UNIT         else Select(thisRef, lazyVar)
@@ -304,7 +292,7 @@ trait AccessorSynthesis extends Transform with ast.TreeDSL {
 
         // The lazy accessor delegates to the compute method if needed, otherwise just accesses the var (it was initialized previously)
         // `if ((bitmap&n & MASK) == 0) this.l$compute() else l$`
-        val accessorRhs = fields.castHack(If(needsInit, Apply(Select(thisRef, slowPathSym), Nil), selectVar), lazyVar.info)
+        val accessorRhs = If(needsInit, Apply(Select(thisRef, slowPathSym), Nil), selectVar)
 
         afterOwnPhase { // so that we can assign to vals
           Thicket(List((DefDef(slowPathSym, slowPathRhs)), DefDef(lazyAccessor, accessorRhs)) map typedPos(lazyAccessor.pos.focus))

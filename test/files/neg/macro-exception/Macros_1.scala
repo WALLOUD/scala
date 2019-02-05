@@ -5,5 +5,5 @@ object Macros {
   def impl(c: Context) = {
     throw new Exception()
   }
-  def exception: Any = macro impl
+  def exception = macro impl
 }

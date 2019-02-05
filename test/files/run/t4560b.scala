@@ -12,10 +12,10 @@ object Outer {
 object Outer2 {
   abstract class A5
   private[Outer2] trait C5 {
-    def impl(): Unit = { println("SUCCESS") }
+    def impl() { println("SUCCESS") }
   }
   trait B5 extends C5 { self: A5 =>
-    def fail(): Unit = { impl() }
+    def fail() { impl() }
   }
   object Test5 extends A5 with B5 with C5
 }

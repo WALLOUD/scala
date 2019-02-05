@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package math
@@ -38,6 +34,7 @@ package math
  *  [[scala.math.Equiv Equiv]] trait.
  *
  *  @author  Geoffrey Washburn
+ *  @version 1.0, 2008-04-0-3
  *  @since 2.7
  */
 
@@ -77,15 +74,7 @@ trait PartialOrdering[T] extends Equiv[T] {
 
   def reverse : PartialOrdering[T] = new PartialOrdering[T] {
     override def reverse = outer
-    def tryCompare(x: T, y: T) = outer.tryCompare(y, x)
     def lteq(x: T, y: T) = outer.lteq(y, x)
-    override def gteq(x: T, y: T) = outer.gteq(y, x)
-    override def lt(x: T, y: T) = outer.lt(y, x)
-    override def gt(x: T, y: T) = outer.gt(y, x)
-    override def equiv(x: T, y: T) = outer.equiv(y, x)
+    def tryCompare(x: T, y: T) = outer.tryCompare(y, x)
   }
-}
-
-object PartialOrdering {
-  @inline def apply[T](implicit ev: PartialOrdering[T]): PartialOrdering[T] = ev
 }

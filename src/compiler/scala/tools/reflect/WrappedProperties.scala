@@ -1,13 +1,6 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
+/* NSC -- new Scala compiler
+ * Copyright 2006-2013 LAMP/EPFL
+ * @author  Paul Phillips
  */
 
 package scala.tools
@@ -27,12 +20,12 @@ trait WrappedProperties extends PropertiesTrait {
   protected def pickJarBasedOn = this.getClass
 
   override def propIsSet(name: String)               = wrap(super.propIsSet(name)) exists (x => x)
-  override def propOrElse(name: String, alt: => String) = wrap(super.propOrElse(name, alt)) getOrElse alt
+  override def propOrElse(name: String, alt: String) = wrap(super.propOrElse(name, alt)) getOrElse alt
   override def setProp(name: String, value: String)  = wrap(super.setProp(name, value)).orNull
   override def clearProp(name: String)               = wrap(super.clearProp(name)).orNull
-  override def envOrElse(name: String, alt: => String)  = wrap(super.envOrElse(name, alt)) getOrElse alt
+  override def envOrElse(name: String, alt: String)  = wrap(super.envOrElse(name, alt)) getOrElse alt
   override def envOrNone(name: String)               = wrap(super.envOrNone(name)).flatten
-  override def envOrSome(name: String, alt: => Option[String]) = wrap(super.envOrNone(name)).flatten orElse alt
+  override def envOrSome(name: String, alt: Option[String]) = wrap(super.envOrNone(name)).flatten orElse alt
 
   def systemProperties: List[(String, String)] = {
     import scala.collection.JavaConverters._

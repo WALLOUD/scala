@@ -4,7 +4,7 @@ object Test extends App {
 
   def tryit(label: String, start: Int, len: Int): Unit = {
     val status = try {
-      val it = ns.iterator
+      val it = ns.toIterator
       it.copyToArray(arr, start, len)
       "ok"
     } catch {
@@ -30,15 +30,15 @@ object Test extends App {
   tryit("invalid read -1", 30, -1)
 
   // okay, see scala/bug#7128
-  "...".iterator.copyToArray(new Array[Char](0), 0, 0)
+  "...".toIterator.copyToArray(new Array[Char](0), 0, 0)
 
 
   // Bonus test from @som-snytt to check for overflow in
   // index calculations.
-  def testOverflow(start: Int, len: Int, expected: List[Char]): Unit = {
+  def testOverflow(start: Int, len: Int, expected: List[Char]) {
     def copyFromIterator = {
       val arr = Array.fill[Char](3)('-')
-      "abc".iterator.copyToArray(arr, start, len)
+      "abc".toIterator.copyToArray(arr, start, len)
       arr.toList
     }
     def copyFromArray = {

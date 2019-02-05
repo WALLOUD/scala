@@ -1,5 +1,6 @@
 import scala.collection.immutable.Nil;
 import scala.collection.immutable.List;
+import scala.collection.Traversable;
 
 public class Test {
 	public static void main(String[] args) {

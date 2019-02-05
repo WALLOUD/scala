@@ -1,5 +1,3 @@
-// scalac: -Xfatal-warnings -unchecked
-//
 trait T {
   final case class A()
 

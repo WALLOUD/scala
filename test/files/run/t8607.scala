@@ -9,7 +9,7 @@ package p1 {
 }
 
 object Test {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]) {
     val c = new p1.C(42)
     c.a
     /*

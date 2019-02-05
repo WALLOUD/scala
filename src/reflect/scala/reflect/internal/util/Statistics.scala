@@ -1,24 +1,11 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
-
 package scala
 package reflect.internal.util
 
 import scala.collection.mutable
+
 import scala.reflect.internal.SymbolTable
 import scala.reflect.internal.settings.MutableSettings
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-
-import scala.runtime.LongRef
+import java.lang.invoke.{SwitchPoint, MethodHandle, MethodHandles, MethodType}
 
 abstract class Statistics(val symbolTable: SymbolTable, settings: MutableSettings) {
 
@@ -32,12 +19,12 @@ abstract class Statistics(val symbolTable: SymbolTable, settings: MutableSetting
   type TimerSnapshot = (Long, Long)
 
   /** If enabled, increment counter by one */
-  @inline final def incCounter(c: Counter): Unit = {
+  @inline final def incCounter(c: Counter) {
     if (areStatisticsLocallyEnabled && c != null) c.value += 1
   }
 
   /** If enabled, increment counter by given delta */
-  @inline final def incCounter(c: Counter, delta: Int): Unit = {
+  @inline final def incCounter(c: Counter, delta: Int) {
     if (areStatisticsLocallyEnabled && c != null) c.value += delta
   }
 
@@ -52,7 +39,7 @@ abstract class Statistics(val symbolTable: SymbolTable, settings: MutableSetting
     if (areStatisticsLocallyEnabled && sc != null) sc.start() else null
 
   /** If enabled, stop subcounter from tracking its base counter. */
-  @inline final def stopCounter(sc: SubCounter, start: (Int, Int)): Unit = {
+  @inline final def stopCounter(sc: SubCounter, start: (Int, Int)) {
     if (areStatisticsLocallyEnabled && sc != null) sc.stop(start)
   }
 
@@ -61,7 +48,7 @@ abstract class Statistics(val symbolTable: SymbolTable, settings: MutableSetting
     if (areStatisticsLocallyEnabled && tm != null) tm.start() else null
 
   /** If enabled, stop timer */
-  @inline final def stopTimer(tm: Timer, start: TimerSnapshot): Unit = {
+  @inline final def stopTimer(tm: Timer, start: TimerSnapshot) {
     if (areStatisticsLocallyEnabled && tm != null) tm.stop(start)
   }
 
@@ -70,7 +57,7 @@ abstract class Statistics(val symbolTable: SymbolTable, settings: MutableSetting
     if (areStatisticsLocallyEnabled && timers != null) timers.push(timer) else null
 
   /** If enabled, stop and pop timer from timer stack */
-  @inline final def popTimer(timers: TimerStack, prev: TimerSnapshot): Unit = {
+  @inline final def popTimer(timers: TimerStack, prev: TimerSnapshot) {
     if (areStatisticsLocallyEnabled && timers != null) timers.pop(prev)
   }
 
@@ -115,10 +102,10 @@ quant)
 
   /** Create a new quantity map that shows as `prefix` and is active in given phases.
    */
-  def newQuantMap[K, V](prefix: String, phases: String*)(initValue: => V)(implicit ev: V => Ordered[V]): QuantMap[K, V] = new QuantMap(prefix, phases, initValue)
+  def newQuantMap[K, V <% Ordered[V]](prefix: String, phases: String*)(initValue: => V): QuantMap[K, V] = new QuantMap(prefix, phases, initValue)
 
   /** Same as newQuantMap, where the key type is fixed to be Class[_] */
-  def newByClass[V](prefix: String, phases: String*)(initValue: => V)(implicit ev: V => Ordered[V]): QuantMap[Class[_], V] = new QuantMap(prefix, phases, initValue)
+  def newByClass[V <% Ordered[V]](prefix: String, phases: String*)(initValue: => V): QuantMap[Class[_], V] = new QuantMap(prefix, phases, initValue)
 
   /** Create a new timer stack */
   def newTimerStack() = new TimerStack()
@@ -181,7 +168,7 @@ quant)
 
   class SubCounter(prefix: String, override val underlying: Counter) extends Counter(prefix, underlying.phases) with SubQuantity {
     def start() = (value, underlying.value)
-    def stop(prev: (Int, Int)): Unit = {
+    def stop(prev: (Int, Int)) {
       val (value0, uvalue0) = prev
       value = value0 + underlying.value - uvalue0
     }
@@ -190,37 +177,22 @@ quant)
   }
 
   class Timer(val prefix: String, val phases: Seq[String]) extends Quantity {
-    private[this] val totalThreads = new AtomicInteger()
-    private[this] val threadNanos = new ThreadLocal[LongRef] {
-      override def initialValue() = {
-        totalThreads.incrementAndGet()
-        new LongRef(0)
-      }
+    var nanos: Long = 0
+    var timings = 0
+    def start() = {
+      (nanos, System.nanoTime())
     }
-    private[util] val totalNanos = new AtomicLong
-    private[util] val timings = new AtomicInteger
-    def nanos = totalNanos.get
-    def start(): TimerSnapshot = {
-      (threadNanos.get.elem, System.nanoTime())
-    }
-    def stop(prev: TimerSnapshot): Unit = {
+    def stop(prev: TimerSnapshot) {
       val (nanos0, start) = prev
-      val newThreadNanos = nanos0 + System.nanoTime() - start
-      val threadNanosCount = threadNanos.get
-      val diff = newThreadNanos - threadNanosCount.elem
-      threadNanosCount.elem = newThreadNanos
-      totalNanos.addAndGet(diff)
-      timings.incrementAndGet()
+      nanos = nanos0 + System.nanoTime() - start
+      timings += 1
     }
-    protected def show(ns: Long) = s"${ns/1000/1000.0}ms"
-    override def toString = {
-      val threads = totalThreads.get
-      s"$timings spans, ${if (threads > 1) s"$threads threads, "}${show(totalNanos.get)}"
-    }
+    protected def show(ns: Long) = s"${ns/1000000}ms"
+    override def toString = s"$timings spans, ${show(nanos)}"
   }
 
   class SubTimer(prefix: String, override val underlying: Timer) extends Timer(prefix, underlying.phases) with SubQuantity {
-    override protected def show(ns: Long) = super.show(ns) + showPercent(ns, underlying.totalNanos.get)
+    override protected def show(ns: Long) = super.show(ns) + showPercent(ns, underlying.nanos)
   }
 
   class StackableTimer(prefix: String, underlying: Timer) extends SubTimer(prefix, underlying) with Ordered[StackableTimer] {
@@ -241,15 +213,13 @@ quant)
   /** A mutable map quantity where missing elements are automatically inserted
    *  on access by executing `initValue`.
    */
-  class QuantMap[K, V](val prefix: String, val phases: Seq[String], initValue: => V)(implicit ev: V => Ordered[V])
-      extends mutable.HashMap[K, V] with Quantity {
+  class QuantMap[K, V <% Ordered[V]](val prefix: String, val phases: Seq[String], initValue: => V)
+      extends mutable.HashMap[K, V] with mutable.SynchronizedMap[K, V] with Quantity {
     override def default(key: K) = {
       val elem = initValue
       this(key) = elem
       elem
     }
-    //TODO clients may need to do additional synchronization; QuantMap used to extend SynchronizedMap before 2.13
-    override def apply(key: K): V = super.apply(key)
     override def toString =
       this.toSeq.sortWith(_._2 > _._2).map {
         case (cls: Class[_], elem) =>
@@ -262,11 +232,9 @@ quant)
   /** A stack of timers, all active, where a timer's specific "clock"
    *  is stopped as long as it is buried by some other timer in the stack, but
    *  its aggregate clock keeps on ticking.
-   *
-   *  Note: Not threadsafe
    */
   class TimerStack {
-    private[this] var elems: List[(StackableTimer, Long)] = Nil
+    private var elems: List[(StackableTimer, Long)] = Nil
     /** Start given timer and push it onto the stack */
     def push(t: StackableTimer): TimerSnapshot = {
       elems = (t, 0L) :: elems
@@ -278,9 +246,9 @@ quant)
       val (nanos0, start) = prev
       val duration = System.nanoTime() - start
       val (topTimer, nestedNanos) :: rest = elems
-      topTimer.totalNanos.addAndGet(nanos0 + duration)
+      topTimer.nanos = nanos0 + duration
       topTimer.specificNanos += duration - nestedNanos
-      topTimer.timings.incrementAndGet()
+      topTimer.timings += 1
       elems = rest match {
         case (outerTimer, outerNested) :: elems1 =>
           (outerTimer, outerNested + duration) :: elems1
@@ -290,7 +258,7 @@ quant)
     }
   }
 
-  private[this] val qs = new mutable.HashMap[String, Quantity]
+  private val qs = new mutable.HashMap[String, Quantity]
   private[scala] var areColdStatsLocallyEnabled: Boolean = false
   private[scala] var areHotStatsLocallyEnabled: Boolean = false
 

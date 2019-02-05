@@ -1,3 +1,3 @@
-import scala.collection.IterableOnceOps._
+import scala.collection.mutable.MultiMap._
 
 class A

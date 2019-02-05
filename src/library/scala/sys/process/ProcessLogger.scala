@@ -1,14 +1,10 @@
-/*
- * Scala (https://www.scala-lang.org)
- *
- * Copyright EPFL and Lightbend, Inc.
- *
- * Licensed under Apache License 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0).
- *
- * See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- */
+/*                     __                                               *\
+**     ________ ___   / /  ___     Scala API                            **
+**    / __/ __// _ | / /  / _ |    (c) 2003-2013, LAMP/EPFL             **
+**  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+** /____/\___/_/ |_/____/_/ | |                                         **
+**                          |/                                          **
+\*                                                                      */
 
 package scala
 package sys
@@ -60,7 +56,7 @@ trait ProcessLogger {
 
 /** A [[scala.sys.process.ProcessLogger]] that writes output to a file. */
 class FileProcessLogger(file: File) extends ProcessLogger with Closeable with Flushable {
-  private[this] val writer = (
+  private val writer = (
     new PrintWriter(
       new BufferedWriter(
         new OutputStreamWriter(

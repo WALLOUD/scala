@@ -1,5 +1,5 @@
 class CTxnLocal[ T ] {
-    def set( x: T )( implicit t: Txn ): Unit = {}
+    def set( x: T )( implicit t: Txn ) {}
     def get( implicit t: Txn ) : T = null.asInstanceOf[ T ]
     def initialValue( t: Txn ) : T = null.asInstanceOf[ T ]
 }
@@ -32,7 +32,7 @@ object TxnLocal {
          set( v )
          oldV
       }
-      def transform( f: T => T )( implicit tx: ProcTxn ): Unit = {
+      def transform( f: T => T )( implicit tx: ProcTxn ) {
          set( f( apply ))
       }
    }

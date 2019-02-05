@@ -1,9 +1,8 @@
 import scala.reflect.runtime.universe._
-import scala.reflect.ClassManifest
 
 object Test extends App {
   def typeTagIsnotClassManifest[T: TypeTag] = {
-    println(implicitly[ClassManifest[T]])
+    println(classManifest[T])
   }
 
   typeTagIsnotClassManifest[Int]
